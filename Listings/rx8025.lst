@@ -1,0 +1,278 @@
+C51 COMPILER V9.60.7.0   RX8025                                                            11/02/2023 17:52:46 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE RX8025
+OBJECT MODULE PLACED IN .\Objects\rx8025.obj
+COMPILER INVOKED BY: D:\Embedded_drive\Keil_v5\C51\BIN\C51.EXE src\lib\SRC\rx8025.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDI
+                    -R(.\src\lib\INC) DEBUG OBJECTEXTEND PRINT(.\Listings\rx8025.lst) OBJECT(.\Objects\rx8025.obj)
+
+line level    source
+
+   1          /*
+   2           * @Description:
+   3           * @Blog: saisaiwa.com
+   4           * @Author: ccy
+   5           * @Date: 2023-09-04 10:53:37
+   6           * @LastEditTime: 2023-11-02 16:46:52
+   7           */
+   8          #include <rx8025.h>
+   9          
+  10          #define RX8025T_ADDR_W 0x64
+  11          #define RX8025T_ADDR_R 0x65
+  12          
+  13          #define SDA_1 I2C_SDA = 1
+  14          #define SDA_0 I2C_SDA = 0
+  15          
+  16          #define SCL_1 I2C_SCL = 1
+  17          #define SCL_0 I2C_SCL = 0
+  18          
+  19          void i2c_sda_out() {
+  20   1          P1M1 |= 0x40;  // 配置开漏输出
+  21   1          P1M0 |= 0x40;  // 配置开漏输出
+  22   1      }
+  23          
+  24          void i2c_sda_in() {
+  25   1          // 配置高阻输入
+  26   1          P1M1 |= 0x40;
+  27   1          P1M0 &= 0xbf;
+  28   1      }
+  29          
+  30          void i2c_init() {
+  31   1          // SCL开漏输出
+  32   1          P1M1 |= 0x20;
+  33   1          P1M0 |= 0x20;
+  34   1          // 8025INT高阻输入
+  35   1          P1M1 |= 0x80;
+  36   1          P1M0 &= 0x7F;
+  37   1      
+  38   1          i2c_sda_out();
+  39   1      }
+  40          
+  41          void i2c_start() {
+  42   1          i2c_sda_out();
+  43   1          SDA_1;
+  44   1          SCL_1;
+  45   1          delay_us(4);
+  46   1          SDA_0;
+  47   1          delay_us(4);
+  48   1          SCL_0;
+  49   1      }
+  50          
+  51          void i2c_stop() {
+  52   1          i2c_sda_out();
+  53   1          SCL_0;
+  54   1          SDA_0;
+C51 COMPILER V9.60.7.0   RX8025                                                            11/02/2023 17:52:46 PAGE 2   
+
+  55   1          SCL_1;
+  56   1          delay_us(4);
+  57   1          SDA_1;
+  58   1          delay_us(4);
+  59   1      }
+  60          
+  61          void i2c_nack() {
+  62   1          i2c_sda_out();
+  63   1          SDA_1;
+  64   1          SCL_0;
+  65   1          delay_us(4);
+  66   1          SCL_1;
+  67   1          delay_us(4);
+  68   1          SCL_0;
+  69   1      }
+  70          
+  71          void i2c_ack() {
+  72   1          i2c_sda_out();
+  73   1          SDA_0;
+  74   1          SCL_0;
+  75   1          delay_us(4);
+  76   1          SCL_1;
+  77   1          delay_us(4);
+  78   1          SCL_0;
+  79   1      }
+  80          
+  81          u8 i2c_check_ack() {
+  82   1          uint8_t ack = 0, errorRetry = 3;
+  83   1          SDA_1;
+  84   1          delay_us(1);
+  85   1          i2c_sda_in();
+  86   1          delay_us(1);
+  87   1          SCL_1;
+  88   1          delay_us(1);
+  89   1          while (I2C_SDA) {
+  90   2              if (errorRetry <= 0) {
+  91   3                  break;
+  92   3              }
+  93   2              delay_us(1);
+  94   2              errorRetry--;
+  95   2          }
+  96   1          if (errorRetry) {
+  97   2              ack = 1;
+  98   2          }
+  99   1          if (!ack) {
+ 100   2              i2c_stop();
+ 101   2          }
+ 102   1          SCL_0;
+ 103   1          return ack;
+ 104   1      }
+ 105          
+ 106          u8 i2c_write(u8 buf) {
+ 107   1          u8 i;
+ 108   1          i2c_sda_out();
+ 109   1          SCL_0;
+ 110   1          delay_us(4);
+ 111   1          for (i = 0; i < 8; i++) {
+ 112   2              if (buf & 0x80) {
+ 113   3                  SDA_1;
+ 114   3              } else {
+ 115   3                  SDA_0;
+ 116   3              }
+C51 COMPILER V9.60.7.0   RX8025                                                            11/02/2023 17:52:46 PAGE 3   
+
+ 117   2              delay_us(4);
+ 118   2              SCL_1;
+ 119   2              delay_us(4);
+ 120   2              SCL_0;
+ 121   2              buf <<= 1;
+ 122   2          }
+ 123   1          return i2c_check_ack();
+ 124   1      }
+ 125          
+ 126          u8 i2c_read(u8 ack) {
+ 127   1          uint8_t receiveData = 0, i;
+ 128   1          i2c_sda_in();
+ 129   1          for (i = 0; i < 8; i++) {
+ 130   2              SCL_0;
+ 131   2              delay_us(4);
+ 132   2              SCL_1;
+ 133   2              receiveData <<= 1;
+ 134   2              if (I2C_SDA) {
+ 135   3                  receiveData |= 0x01;
+ 136   3              }
+ 137   2              delay_us(1);
+ 138   2          }
+ 139   1          SCL_0;
+ 140   1          ack ? i2c_ack() : i2c_nack();
+ 141   1          return receiveData;
+ 142   1      }
+ 143          
+ 144          void rx8025_read(u8 address, u8* buf, u8 len) {
+ 145   1          u8 i;
+ 146   1          i2c_start();
+ 147   1          if (!i2c_write(RX8025T_ADDR_W)) {
+ 148   2              return;
+ 149   2          }
+ 150   1          if (!i2c_write(address)) {
+ 151   2              return;
+ 152   2          }
+ 153   1          i2c_start();
+ 154   1          if (!i2c_write(RX8025T_ADDR_R)) {
+ 155   2              return;
+ 156   2          }
+ 157   1          for (i = 0; i < len; i++) {
+ 158   2              buf[i] = i2c_read((i == len - 1) ? 0 : 1);
+ 159   2          }
+ 160   1          i2c_stop();
+ 161   1      }
+ 162          
+ 163          void rx8025_write(u8 address, u8* buf, u8 len) {
+ 164   1          u8 i;
+ 165   1          i2c_start();
+ 166   1          if (!i2c_write(RX8025T_ADDR_W)) {
+ 167   2              return;
+ 168   2          }
+ 169   1          if (!i2c_write(address)) {
+ 170   2              return;
+ 171   2          }
+ 172   1          for (i = 0; i < len; i++) {
+ 173   2              if (!i2c_write(buf[i])) {
+ 174   3                  return;
+ 175   3              }
+ 176   2          }
+ 177   1          i2c_stop();
+ 178   1      }
+C51 COMPILER V9.60.7.0   RX8025                                                            11/02/2023 17:52:46 PAGE 4   
+
+ 179          
+ 180          void rx8025t_init() {
+ 181   1          i2c_init();
+ 182   1      }
+ 183          
+ 184          void rx8025_reset() {
+ 185   1          u8 command[2];
+ 186   1          i2c_init();
+ 187   1          command[0] = 0x00;
+ 188   1          command[1] = 0x40;
+ 189   1          rx8025_write(0xe0, command, 2);
+ 190   1      }
+ 191          
+ 192          u8 toBcd(u8 val) {
+ 193   1          return ((val / 10) << 4) | (val % 10);
+ 194   1      }
+ 195          
+ 196          u8 toDec(u8 bcd) {
+ 197   1          return ((bcd >> 4) * 10) + (bcd & 0x0F);
+ 198   1      }
+ 199          
+ 200          void rx8025_set_time(u8 year,
+ 201                               u8 month,
+ 202                               u8 day,
+ 203                               u8 week,
+ 204                               u8 hour,
+ 205                               u8 min,
+ 206                               u8 sec) {
+ 207   1          u8 command[7];
+ 208   1          i2c_init();
+ 209   1          command[0] = toBcd(sec);
+ 210   1          command[1] = toBcd(min);
+ 211   1          command[2] = toBcd(hour);
+ 212   1          command[3] = (0x00 >> week) | 0x01;
+ 213   1          command[4] = toBcd(day);
+ 214   1          command[5] = toBcd(month);
+ 215   1          command[6] = toBcd(year);
+ 216   1          rx8025_write(0x00, command, 7);
+ 217   1      }
+ 218          
+ 219          void rx8025_time_get(rx8025_timeinfo* timeinfo) {
+ 220   1          u8 buf[7];
+ 221   1          i2c_init();
+ 222   1          rx8025_read(0x00, buf, 7);
+ 223   1          timeinfo->sec = toDec(buf[0]);
+ 224   1          timeinfo->min = toDec(buf[1]);
+ 225   1          timeinfo->hour = toDec(buf[2]);
+ 226   1          timeinfo->day = toDec(buf[4]);
+ 227   1          timeinfo->month = toDec(buf[5]);
+ 228   1          timeinfo->year = toDec(buf[6]);
+ 229   1          timeinfo->week = (-35 + timeinfo->year + (timeinfo->year / 4) +
+ 230   1                            (13 * (timeinfo->month + 1) / 5) + timeinfo->day - 1) %
+ 231   1                           7;
+ 232   1      }
+ 233          
+ 234          void formart_time(rx8025_timeinfo* timeinfo, char* buf, size_t buf_size) {
+ 235   1          memset(buf, 0, buf_size);
+ 236   1          sprintf(buf, "%02d%02d%02d", timeinfo->hour, timeinfo->min, timeinfo->sec);
+ 237   1      }
+ 238          
+ 239          /**
+ 240           *  YYMMdd
+C51 COMPILER V9.60.7.0   RX8025                                                            11/02/2023 17:52:46 PAGE 5   
+
+ 241           */
+ 242          void formart_date(rx8025_timeinfo* timeinfo, char* buf, size_t buf_size) {
+ 243   1          memset(buf, 0, sizeof(char) * buf_size);
+ 244   1          sprintf(buf, "20%d%02d%02d", timeinfo->year, timeinfo->month,
+ 245   1                  timeinfo->day);
+ 246   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1282    ----
+   CONSTANT SIZE    =     26    ----
+   XDATA SIZE       =   ----      61
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

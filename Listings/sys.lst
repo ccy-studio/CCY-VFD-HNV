@@ -1,0 +1,135 @@
+C51 COMPILER V9.60.7.0   SYS                                                               11/02/2023 17:52:46 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE SYS
+OBJECT MODULE PLACED IN .\Objects\sys.obj
+COMPILER INVOKED BY: D:\Embedded_drive\Keil_v5\C51\BIN\C51.EXE src\lib\SRC\sys.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDIR(.
+                    -\src\lib\INC) DEBUG OBJECTEXTEND PRINT(.\Listings\sys.lst) OBJECT(.\Objects\sys.obj)
+
+line level    source
+
+   1          #include "sys.h"
+   2          
+   3          u32 data _systick_ccr = 0;
+   4          
+   5          #ifdef DEV_PLATFROM
+   6          u8 rx_index = 0;
+   7          const char* xdata STCISPCMD = "@STCISP#";
+   8          void hal_init_uart(void) {
+   9   1          // 115200
+  10   1          SCON = 0x50;   // 8位数据,可变波特率
+  11   1          AUXR |= 0x40;  // 定时器时钟1T模式
+  12   1          AUXR &= 0xFE;  // 串口1选择定时器1为波特率发生器
+  13   1          TMOD &= 0x0F;  // 设置定时器模式
+  14   1          TL1 = 0xD0;    // 设置定时初始值
+  15   1          TH1 = 0xFF;    // 设置定时初始值
+  16   1          ET1 = 0;       // 禁止定时器中断
+  17   1          TR1 = 1;       // 定时器1开始计时
+  18   1      }
+  19          
+  20          void uart_isr(void) interrupt 4 {
+  21   1          char dat;
+  22   1          if (TI) {
+  23   2              TI = 0;
+  24   2          }
+  25   1          if (RI) {
+  26   2              RI = 0;
+  27   2              dat = SBUF;
+  28   2              if (dat == STCISPCMD[rx_index]) {
+  29   3                  rx_index++;
+  30   3                  if (STCISPCMD[rx_index] == '\0') {
+  31   4                      IAP_CONTR = 0x60;  // 软复位到ISP进行下载
+  32   4                  }
+  33   3              } else {
+  34   3                  // 不匹配重新开始
+  35   3                  rx_index++;
+  36   3                  if (dat == STCISPCMD[rx_index]) {
+  37   4                      rx_index++;
+  38   4                  }
+  39   3              }
+  40   2          }
+  41   1      }
+  42          
+  43          char putchar(char ch) {
+  44   1          SBUF = ch;  // 串口1数据寄存器
+  45   1          while (TI == 0)
+  46   1              ;  // 串口1中断发送请求标志
+  47   1          TI = 0;
+  48   1          return ch;
+  49   1      }
+  50          #endif
+  51          
+  52          void hal_init_systick() {
+  53   1          // 1毫秒@22.1184MHz
+  54   1          AUXR |= 0x80;  // 定时器时钟1T模式
+C51 COMPILER V9.60.7.0   SYS                                                               11/02/2023 17:52:46 PAGE 2   
+
+  55   1          TMOD = 0xF3;   // 设置定时器模式
+  56   1          TL0 = 0x9A;    // 设置定时初始值
+  57   1          TH0 = 0xA9;    // 设置定时初始值
+  58   1          TF0 = 0;       // 清除TF0标志
+  59   1          TR0 = 1;       // 定时器0开始计时
+  60   1          ET0 = 1;       // 使能定时器0中断
+  61   1      }
+  62          u32 hal_systick_get() {
+  63   1          return _systick_ccr;
+  64   1      }
+  65          
+  66          void timer0_Isr(void) interrupt 1 {
+  67   1          _systick_ccr++;
+  68   1      }
+  69          
+  70          void hal_init_all_gpio(void) {
+  71   1          P3M0 = 0x00;
+  72   1          P3M1 = 0x00;
+  73   1          P1M0 = 0x00;
+  74   1          P1M1 = 0x00;
+  75   1          // I2C内部上拉
+  76   1          P1PU = 0xE0;
+  77   1          // Key按键高阻输入+内部上拉
+  78   1          P3M0 |= 0x78;
+  79   1          P3M1 |= 0x78;
+  80   1          P3PU = 0x78;
+  81   1          // RGB 配置推挽输出+高速模式
+  82   1          P1M0 |= 0x08;
+  83   1          P1SR &= 0xf7;
+  84   1      }
+  85          
+  86          void delay_ms(u32 ms) {
+  87   1          unsigned char data i, j;
+  88   1          do {
+  89   2              i = 29;
+  90   2              j = 183;
+  91   2              do {
+  92   3                  while (--j)
+  93   3                      ;
+  94   3              } while (--i);
+  95   2          } while (--ms);
+  96   1      }
+  97          
+  98          void delay_us(u32 us) {
+  99   1          unsigned char data i;
+ 100   1      
+ 101   1          do {
+ 102   2              _nop_();
+ 103   2              i = 5;
+ 104   2              while (--i)
+ 105   2                  ;
+ 106   2          } while (--us);
+ 107   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    328    ----
+   CONSTANT SIZE    =      9    ----
+   XDATA SIZE       =      4       8
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      4       3
+   IDATA SIZE       =   ----    ----
+C51 COMPILER V9.60.7.0   SYS                                                               11/02/2023 17:52:46 PAGE 3   
+
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

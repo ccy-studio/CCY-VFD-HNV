@@ -1,0 +1,8 @@
+".\Objects\main.obj",
+".\Objects\gui.obj",
+".\Objects\pt6315.obj",
+".\Objects\rx8025.obj",
+".\Objects\sys.obj",
+".\Objects\ws2812b.obj" 
+TO ".\Objects\Project" 
+PRINT(".\Listings\Project.m51") RAMSIZE(256) 
