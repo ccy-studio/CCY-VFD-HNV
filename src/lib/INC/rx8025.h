@@ -51,10 +51,10 @@ void rx8025_time_get(rx8025_timeinfo* timeinfo);
 /**
  * formart HHmmss
  */
-void formart_time(rx8025_timeinfo* timeinfo, char* buf, size_t buf_size);
+void formart_time(rx8025_timeinfo* timeinfo, char* buf);
 /**
  * formart YYMMdd
  */
-void formart_date(rx8025_timeinfo* timeinfo, char* buf, size_t buf_size);
+void formart_date(rx8025_timeinfo* timeinfo, char* buf);
 
 #endif

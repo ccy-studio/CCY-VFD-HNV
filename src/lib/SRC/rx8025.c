@@ -231,16 +231,14 @@ void rx8025_time_get(rx8025_timeinfo* timeinfo) {
                      7;
 }
 
-void formart_time(rx8025_timeinfo* timeinfo, char* buf, size_t buf_size) {
-    memset(buf, 0, buf_size);
+void formart_time(rx8025_timeinfo* timeinfo, char* buf) {
     sprintf(buf, "%02d%02d%02d", timeinfo->hour, timeinfo->min, timeinfo->sec);
 }
 
 /**
  *  YYMMdd
  */
-void formart_date(rx8025_timeinfo* timeinfo, char* buf, size_t buf_size) {
-    memset(buf, 0, sizeof(char) * buf_size);
+void formart_date(rx8025_timeinfo* timeinfo, char* buf) {
     sprintf(buf, "20%d%02d%02d", timeinfo->year, timeinfo->month,
             timeinfo->day);
 }

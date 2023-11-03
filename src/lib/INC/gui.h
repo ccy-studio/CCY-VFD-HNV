@@ -52,4 +52,5 @@ void vfd_gui_set_bck(u8 onOff);
  */
 void vfd_gui_set_blk_level(size_t level);
 
+long map(long x, long in_min, long in_max, long out_min, long out_max);
 #endif

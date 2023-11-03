@@ -47,6 +47,8 @@ char putchar(char ch) {
     TI = 0;
     return ch;
 }
+#else
+void hal_init_uart(void) {}
 #endif
 
 void hal_init_systick() {
@@ -81,6 +83,13 @@ void hal_init_all_gpio(void) {
     // RGB 配置推挽输出+高速模式
     P1M0 |= 0x08;
     P1SR &= 0xf7;
+
+    //配置KEY中断为下降沿中断
+    P3IM0 = 0x00;
+    P3IM1 = 0x00;
+    //使能中断
+    P3INTE = 0x78;
+    EA = 1;  // 开总中断
 }
 
 void delay_ms(u32 ms) {

@@ -3,7 +3,7 @@
  * @Blog: saisaiwa.com
  * @Author: ccy
  * @Date: 2023-11-02 11:23:32
- * @LastEditTime: 2023-11-02 16:30:15
+ * @LastEditTime: 2023-11-03 10:19:27
  */
 #ifndef __MSYS_H
 #define __MSYS_H
@@ -17,7 +17,7 @@
 // 开发环境开启，生产环境注释掉
 #define DEV_PLATFROM
 
-#define SYS_FOSC 22118400UL  // 22.1184Mhz
+//#define SYS_FOSC 22118400UL  // 22.1184Mhz
 
 typedef unsigned char uint8_t;
 typedef unsigned int uint16_t;
