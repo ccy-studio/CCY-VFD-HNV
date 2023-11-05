@@ -3,10 +3,17 @@
 u32 data _systick_ccr = 0;
 
 #ifdef DEV_PLATFROM
+
+bit busy = 0;
+/**
+ * 关键字code是51单片机特有关键字
+ * 而运用code关键字修饰下定义的变量，比如unsigned char code i；
+ * 它们则存储在单片机程序存储空间FLASH中，节省单片机RAM资源，但在程序中不能更改这些变量的值。
+ */
+char* code STCISPCMD = "@STCISP#";
 u8 rx_index = 0;
-const char* xdata STCISPCMD = "@STCISP#";
+
 void hal_init_uart(void) {
-    // 115200
     SCON = 0x50;   // 8位数据,可变波特率
     AUXR |= 0x40;  // 定时器时钟1T模式
     AUXR &= 0xFE;  // 串口1选择定时器1为波特率发生器
@@ -15,12 +22,13 @@ void hal_init_uart(void) {
     TH1 = 0xFF;    // 设置定时初始值
     ET1 = 0;       // 禁止定时器中断
     TR1 = 1;       // 定时器1开始计时
+    ES = 1;        // 使能串口1中断
 }
-
-void uart_isr(void) interrupt 4 {
+void hal_uart_isr() interrupt 4 {
     char dat;
     if (TI) {
         TI = 0;
+        busy = 0;
     }
     if (RI) {
         RI = 0;
@@ -40,15 +48,26 @@ void uart_isr(void) interrupt 4 {
     }
 }
 
+void hal_uart_send(char* str) {
+    while (*str) {
+        while (busy)
+            ;
+        busy = 1;
+        SBUF = *str;
+        str++;
+    }
+}
+
 char putchar(char ch) {
-    SBUF = ch;  // 串口1数据寄存器
-    while (TI == 0)
-        ;  // 串口1中断发送请求标志
-    TI = 0;
+    while (busy)
+        ;
+    busy = 1;
+    SBUF = ch;
     return ch;
 }
 #else
 void hal_init_uart(void) {}
+void hal_uart_send(char* str) {}
 #endif
 
 void hal_init_systick() {
@@ -82,12 +101,12 @@ void hal_init_all_gpio(void) {
     P3PU = 0x78;
     // RGB 配置推挽输出+高速模式
     P1M0 |= 0x08;
-    P1SR &= 0xf7;
+    // P1SR &= 0xf7;
 
-    //配置KEY中断为下降沿中断
+    // 配置KEY中断为下降沿中断
     P3IM0 = 0x00;
     P3IM1 = 0x00;
-    //使能中断
+    // 使能中断
     P3INTE = 0x78;
     EA = 1;  // 开总中断
 }

@@ -4,10 +4,10 @@
 #include "pt6315.h"
 
 // VFD位数
-#define VFD_DIG_LEN 6
+#define VFD_DIG_LEN 9
 
 #define PWM_ARR 1000  // 重载值
-#define PWM_CCR 500   // 比较值
+#define PWM_CCR 200   // 比较值
 
 
 /**

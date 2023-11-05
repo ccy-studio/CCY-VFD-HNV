@@ -1,10 +1,10 @@
-C51 COMPILER V9.60.7.0   GUI                                                               11/02/2023 17:52:46 PAGE 1   
+C51 COMPILER V9.60.7.0   GUI                                                               11/06/2023 00:06:02 PAGE 1   
 
 
 C51 COMPILER V9.60.7.0, COMPILATION OF MODULE GUI
 OBJECT MODULE PLACED IN .\Objects\gui.obj
-COMPILER INVOKED BY: D:\Embedded_drive\Keil_v5\C51\BIN\C51.EXE src\lib\SRC\gui.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDIR(.
-                    -\src\lib\INC) DEBUG OBJECTEXTEND PRINT(.\Listings\gui.lst) OBJECT(.\Objects\gui.obj)
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE src\lib\SRC\gui.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDIR(.\src\lib\INC) D
+                    -EBUG OBJECTEXTEND PRINT(.\Listings\gui.lst) OBJECT(.\Objects\gui.obj)
 
 line level    source
 
@@ -13,135 +13,169 @@ line level    source
    3          u8 lightOff = 1;    // 背光开关
    4          u8 lightLevel = 5;  // 亮度级别
    5          static u8 xdata send_buf[24] = {0};
-   6          const u32 xdata fonts[1];
-   7          
-   8          u32* gui_get_font(char c);
-   9          
-  10          void start_pwm() {
-  11   1          PWMA_CCER1 = 0x00;  // 在设置前先清零
-  12   1          PWMA_PSCRH = 0x00;
-  13   1          PWMA_PSCRL = 0x00;  // 1分频
-  14   1          PWMA_ARRH = (u8)(PWM_ARR >> 8);
-  15   1          PWMA_ARRL = (u8)PWM_ARR;
-  16   1          PWMA_CCR1H = (u8)(PWM_CCR >> 8);
-  17   1          PWMA_CCR1L = (u8)PWM_CCR;
-  18   1          PWMA_CCMR1 = 0x68;  //
-  19   1          PWMA_CCER1 = 0x01;  // 开启CC1
-  20   1          // 输出使能
-  21   1          PWMA_ENO = 0x04;   // 使能PWM2P输出
-  22   1          PWMA_BKR = 0x80;   // 使能主输出
-  23   1          PWMA_PS = 0x00;    // P1.2
-  24   1          PWMA_CR1 |= 0x81;  // 开始计时
-  25   1      }
-  26          
-  27          void stop_pwm() {
-  28   1          PWMA_CR1 &= 0xFE;  // 关闭定时器
-  29   1          PWMA_ENO = 0x00;   // 禁止使能
-  30   1      }
-  31          
-  32          void vfd_gui_init() {
-  33   1          VFD_EN = 1;
-  34   1          start_pwm();
-  35   1          // VFD Setting
-  36   1          setDisplayMode(3);
-  37   1          setModeWirteDisplayMode(0);
-  38   1          vfd_gui_set_blk_level(lightLevel);
-  39   1          vfd_gui_clear();
-  40   1      }
-  41          
-  42          void vfd_gui_stop() {
-  43   1          VFD_EN = 0;
-  44   1          stop_pwm();
-  45   1          vfd_gui_clear();
-  46   1      }
+   6          const u32 xdata fonts[37] = {
+   7              0x333300,  // ASCII:0,ASCII_N:48 index:0
+   8              0x201000,  // ASCII:1,ASCII_N:49 index:1
+   9              0xe12100,  // ASCII:2,ASCII_N:50 index:2
+  10              0xe13000,  // ASCII:3,ASCII_N:51 index:3
+  11              0xe21000,  // ASCII:4,ASCII_N:52 index:4
+  12              0xc33000,  // ASCII:5,ASCII_N:53 index:5
+  13              0xc33100,  // ASCII:6,ASCII_N:54 index:6
+  14              0x211000,  // ASCII:7,ASCII_N:55 index:7
+  15              0xe33100,  // ASCII:8,ASCII_N:56 index:8
+  16              0xe33000,  // ASCII:9,ASCII_N:57 index:9
+  17              0x080400,  // ASCII::,ASCII_N:58 index:10
+  18              0xe31100,  // ASCII:A,ASCII_N:65 index:11
+  19              0xa93400,  // ASCII:B,ASCII_N:66 index:12
+  20              0x032100,  // ASCII:C,ASCII_N:67 index:13
+  21              0x293400,  // ASCII:D,ASCII_N:68 index:14
+  22              0xc32100,  // ASCII:E,ASCII_N:69 index:15
+  23              0xc30100,  // ASCII:F,ASCII_N:70 index:16
+  24              0xc33100,  // ASCII:G,ASCII_N:71 index:17
+  25              0xe21100,  // ASCII:H,ASCII_N:72 index:18
+  26              0x092400,  // ASCII:I,ASCII_N:73 index:19
+  27              0x082400,  // ASCII:J,ASCII_N:74 index:20
+  28              0x520900,  // ASCII:K,ASCII_N:75 index:21
+  29              0x022100,  // ASCII:L,ASCII_N:76 index:22
+  30              0x361100,  // ASCII:M,ASCII_N:77 index:23
+  31              0x261900,  // ASCII:N,ASCII_N:78 index:24
+  32              0x233100,  // ASCII:O,ASCII_N:79 index:25
+  33              0xe10100,  // ASCII:P,ASCII_N:80 index:26
+  34              0x233900,  // ASCII:Q,ASCII_N:81 index:27
+  35              0xe10900,  // ASCII:R,ASCII_N:82 index:28
+  36              0xc33000,  // ASCII:S,ASCII_N:83 index:29
+  37              0x090400,  // ASCII:T,ASCII_N:84 index:30
+  38              0x223000,  // ASCII:U,ASCII_N:85 index:31
+  39              0x241800,  // ASCII:V,ASCII_N:86 index:32
+  40              0x221b00,  // ASCII:W,ASCII_N:87 index:33
+  41              0x140a00,  // ASCII:X,ASCII_N:88 index:34
+  42              0x140400,  // ASCII:Y,ASCII_N:89 index:35
+  43              0x112004,  // ASCII:Z,ASCII_N:90 index:36
+  44          };
+  45          
+  46          u32* gui_get_font(char c);
   47          
-  48          void vfd_gui_clear() {
-  49   1          memset(send_buf, 0x00, sizeof(send_buf));
-  50   1          sendDigAndData(0, send_buf, 24);
-  51   1      }
-  52          
-  53          void vfd_gui_set_one_text(size_t index, char oneChar) {
-  54   1          uint8_t arr[3];
-C51 COMPILER V9.60.7.0   GUI                                                               11/02/2023 17:52:46 PAGE 2   
+  48          void start_pwm() {
+  49   1          PWMA_CCER1 = 0x00;    // 写CCMRx前必须先清零CCERx关闭通道
+  50   1          PWMA_CCMR2 = 0x68;    // 设置CC2为PWMA输出模式
+  51   1          PWMA_CCER1 = 0x10;    // 使能CC2通道
+  52   1          PWMA_CCR2 = PWM_CCR;  // 设置占空比时间
+  53   1          PWMA_ARR = PWM_ARR;   // 设置周期时间
+  54   1          PWMA_ENO = 0x04;      // 使能PWM2P端口输出
+C51 COMPILER V9.60.7.0   GUI                                                               11/06/2023 00:06:02 PAGE 2   
 
-  55   1          u32* buf = gui_get_font(oneChar);
-  56   1          arr[0] = (*buf >> 16) & 0xFF;
-  57   1          arr[1] = (*buf >> 8) & 0xFF;
-  58   1          arr[2] = *buf & 0xFF;
-  59   1          sendDigAndData(index * 3, arr, 3);
-  60   1      }
-  61          
-  62          void vfd_gui_set_icon(u32 buf) {
-  63   1          uint8_t arr[3];
-  64   1          arr[0] = (buf >> 16) & 0xFF;
-  65   1          arr[1] = (buf >> 8) & 0xFF;
-  66   1          arr[2] = buf & 0xFF;
-  67   1          sendDigAndData(0, arr, 3);
-  68   1      }
-  69          
-  70          u8 vfd_gui_set_text(const char* string, const u8 colon) {
-  71   1          size_t str_len = strlen(string);
-  72   1          size_t index = 0, i = 0;
-  73   1          size_t len = str_len > VFD_DIG_LEN ? VFD_DIG_LEN : str_len;
-  74   1          memset(send_buf, 0x00, sizeof(send_buf));
-  75   1          for (i = 0; i < len; i++) {
-  76   2              if (string[i] && string[i] != '\0') {
-  77   3                  u32* buf = gui_get_font(string[i]);
-  78   3                  send_buf[index++] = (*buf >> 16) & 0xFF;
-  79   3                  send_buf[index++] = (*buf >> 8) & 0xFF;
-  80   3                  send_buf[index++] = *buf & 0xFF;
-  81   3              }
-  82   2          }
-  83   1          if (colon) {
-  84   2              send_buf[5] |= 0x10;
-  85   2              send_buf[11] |= 0x10;
-  86   2          }
-  87   1          sendDigAndData(3, send_buf, 24);
-  88   1          return 1;
-  89   1      }
-  90          
-  91          void vfd_gui_set_bck(u8 onOff) {
-  92   1          lightOff = onOff;
-  93   1          ptSetDisplayLight(lightOff, lightLevel);
-  94   1      }
-  95          
-  96          /**
-  97           * 亮度调节 1~7
-  98           */
-  99          void vfd_gui_set_blk_level(size_t level) {
- 100   1          lightLevel = level;
- 101   1          ptSetDisplayLight(lightOff, lightLevel);
- 102   1      }
- 103          
- 104          long map(long x, long in_min, long in_max, long out_min, long out_max) {
- 105   1          const long dividend = out_max - out_min;
- 106   1          const long divisor = in_max - in_min;
- 107   1          const long delta = x - in_min;
- 108   1          return (delta * dividend + (divisor / 2)) / divisor + out_min;
- 109   1      }
- 110          
- 111          u32* gui_get_font(char c) {
- 112   1          if (c == ' ') {
- 113   2              return 0x00;
+  55   1          PWMA_BKR = 0x80;      // 使能主输出
+  56   1          PWMA_CR1 |= 0x81;     // 开始计时
+  57   1      }
+  58          
+  59          void stop_pwm() {
+  60   1          PWMA_CR1 &= 0xFE;  // 关闭定时器
+  61   1          PWMA_ENO = 0x00;   // 禁止使能
+  62   1      }
+  63          
+  64          void vfd_gui_init() {
+  65   1          VFD_EN = 1;
+  66   1          start_pwm();
+  67   1          // VFD Setting
+  68   1          setDisplayMode(6);
+  69   1          setModeWirteDisplayMode(0);
+  70   1          vfd_gui_set_blk_level(lightLevel);
+  71   1          vfd_gui_clear();
+  72   1      }
+  73          
+  74          void vfd_gui_stop() {
+  75   1          VFD_EN = 0;
+  76   1          stop_pwm();
+  77   1          vfd_gui_clear();
+  78   1      }
+  79          
+  80          void vfd_gui_clear() {
+  81   1          memset(send_buf, 0x00, sizeof(send_buf));
+  82   1          sendDigAndData(0, send_buf, 24);
+  83   1      }
+  84          
+  85          void vfd_gui_set_one_text(size_t index, char oneChar) {
+  86   1          uint8_t arr[3];
+  87   1          u32* buf = gui_get_font(oneChar);
+  88   1          arr[0] = (*buf >> 16) & 0xFF;
+  89   1          arr[1] = (*buf >> 8) & 0xFF;
+  90   1          arr[2] = *buf & 0xFF;
+  91   1          sendDigAndData(0, arr, 3);
+  92   1      }
+*** WARNING C280 IN LINE 85 OF src\lib\SRC\gui.c: 'index': unreferenced local variable
+  93          
+  94          void vfd_gui_set_icon(u32 buf) {
+  95   1          uint8_t arr[3];
+  96   1          arr[0] = (buf >> 16) & 0xFF;
+  97   1          arr[1] = (buf >> 8) & 0xFF;
+  98   1          arr[2] = buf & 0xFF;
+  99   1          sendDigAndData(0, arr, 3);
+ 100   1      }
+ 101          
+ 102          u8 vfd_gui_set_text(const char* string, const u8 colon) {
+ 103   1          size_t str_len = strlen(string);
+ 104   1          size_t index = 0, i = 0;
+ 105   1          size_t len = str_len > VFD_DIG_LEN ? VFD_DIG_LEN : str_len;
+ 106   1          memset(send_buf, 0x00, sizeof(send_buf));
+ 107   1          for (i = 0; i < len; i++) {
+ 108   2              if (string[i] && string[i] != '\0') {
+ 109   3                  u32* buf = gui_get_font(string[i]);
+ 110   3                  send_buf[index++] = (*buf >> 16) & 0xFF;
+ 111   3                  send_buf[index++] = (*buf >> 8) & 0xFF;
+ 112   3                  send_buf[index++] = *buf & 0xFF;
+ 113   3              }
  114   2          }
- 115   1          if (c >= 33 && c <= 96) {
- 116   2              // ! ~ `
-C51 COMPILER V9.60.7.0   GUI                                                               11/02/2023 17:52:46 PAGE 3   
+ 115   1          // if (colon) {
+C51 COMPILER V9.60.7.0   GUI                                                               11/06/2023 00:06:02 PAGE 3   
 
- 117   2              return &fonts[map(c, 33, 96, 0, 63)];
- 118   2          } else if (c >= 97 && c <= 122) {
- 119   2              // a~z
- 120   2              return gui_get_font(c - 32);
- 121   2          } else {
- 122   2              return 0;
- 123   2          }
- 124   1      }
+ 116   1          //     send_buf[5] |= 0x10;
+ 117   1          //     send_buf[11] |= 0x10;
+ 118   1          // }
+ 119   1          sendDigAndData(0, send_buf, 24);
+ 120   1          return 1;
+ 121   1      }
+*** WARNING C280 IN LINE 102 OF src\lib\SRC\gui.c: 'colon': unreferenced local variable
+ 122          
+ 123          void vfd_gui_set_bck(u8 onOff) {
+ 124   1          lightOff = onOff;
+ 125   1          ptSetDisplayLight(lightOff, lightLevel);
+ 126   1      }
+ 127          
+ 128          /**
+ 129           * 亮度调节 1~7
+ 130           */
+ 131          void vfd_gui_set_blk_level(size_t level) {
+ 132   1          lightLevel = level;
+ 133   1          ptSetDisplayLight(lightOff, lightLevel);
+ 134   1      }
+ 135          
+ 136          long map(long x, long in_min, long in_max, long out_min, long out_max) {
+ 137   1          const long dividend = out_max - out_min;
+ 138   1          const long divisor = in_max - in_min;
+ 139   1          const long delta = x - in_min;
+ 140   1          return (delta * dividend + (divisor / 2)) / divisor + out_min;
+ 141   1      }
+ 142          
+ 143          u32* gui_get_font(char c) {
+ 144   1          if (c == ' ') {
+ 145   2              return 0x00;
+ 146   2          }
+ 147   1          if (c >= 48 && c <= 58) {
+ 148   2              return &fonts[map(c, 48, 58, 0, 10)];
+ 149   2          } else if (c >= 65 && c <= 90) {
+ 150   2              return &fonts[map(c, 65, 90, 11, 36)];
+ 151   2          } else if (c >= 97 && c <= 122) {
+ 152   2              return gui_get_font(c - 32);
+ 153   2          } else {
+ 154   2              return 0;
+ 155   2          }
+ 156   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   1055    ----
+   CODE SIZE        =   1094    ----
    CONSTANT SIZE    =   ----    ----
-   XDATA SIZE       =     30      58
+   XDATA SIZE       =    174      58
    PDATA SIZE       =   ----    ----
    DATA SIZE        =   ----    ----
    IDATA SIZE       =   ----    ----
@@ -149,4 +183,4 @@ MODULE INFORMATION:   STATIC OVERLAYABLE
 END OF MODULE INFORMATION.
 
 
-C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
+C51 COMPILATION COMPLETE.  2 WARNING(S),  0 ERROR(S)

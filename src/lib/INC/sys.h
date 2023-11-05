@@ -14,10 +14,10 @@
 #include "STDLIB.H"
 #include "STRING.H"
 
-// ¿ª·¢»·¾³¿ªÆô£¬Éú²ú»·¾³×¢ÊÍµô
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×¢ï¿½Íµï¿½
 #define DEV_PLATFROM
 
-//#define SYS_FOSC 22118400UL  // 22.1184Mhz
+// #define SYS_FOSC 22118400UL  // 22.1184Mhz
 
 typedef unsigned char uint8_t;
 typedef unsigned int uint16_t;
@@ -40,6 +40,7 @@ typedef uint8_t bool;
 
 void hal_init_systick();
 u32 hal_systick_get();
+void hal_uart_send(char* str);
 void hal_init_uart(void);
 void hal_init_all_gpio(void);
 void delay_ms(u32 ms);

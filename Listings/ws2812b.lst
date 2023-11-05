@@ -1,10 +1,10 @@
-C51 COMPILER V9.60.7.0   WS2812B                                                           11/02/2023 17:52:46 PAGE 1   
+C51 COMPILER V9.60.7.0   WS2812B                                                           11/06/2023 00:06:02 PAGE 1   
 
 
 C51 COMPILER V9.60.7.0, COMPILATION OF MODULE WS2812B
 OBJECT MODULE PLACED IN .\Objects\ws2812b.obj
-COMPILER INVOKED BY: D:\Embedded_drive\Keil_v5\C51\BIN\C51.EXE src\lib\SRC\ws2812b.c LARGE OPTIMIZE(8,SPEED) BROWSE INCD
-                    -IR(.\src\lib\INC) DEBUG OBJECTEXTEND PRINT(.\Listings\ws2812b.lst) OBJECT(.\Objects\ws2812b.obj)
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE src\lib\SRC\ws2812b.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDIR(.\src\lib\IN
+                    -C) DEBUG OBJECTEXTEND PRINT(.\Listings\ws2812b.lst) OBJECT(.\Objects\ws2812b.obj)
 
 line level    source
 
@@ -32,524 +32,493 @@ line level    source
   22          } hsv_t;
   23          
   24          rgb_t xdata cache_arr[RGB_LED_COUNT];
-  25          u8 xdata buf_arr[RGB_LED_COUNT * 3];
-  26          
-  27          rgb_t hsv2rgb_rainbow(hsv_t hsv);
-  28          // rgb_t hsv2rgb_spectrum(hsv_t hsv);
-  29          // rgb_t rgb_heat_color(uint8_t temperature);
-  30          
-  31          void w0() {
-  32   1          RGB = 1;
-  33   1          _nop_();
-  34   1          _nop_();
-  35   1          _nop_();
-  36   1          _nop_();
-  37   1          _nop_();
-  38   1          _nop_();
-  39   1          _nop_();
-  40   1          _nop_();
-  41   1          _nop_();
-  42   1          RGB = 0;
-  43   1          _nop_();
-  44   1          _nop_();
-  45   1          _nop_();
-  46   1          _nop_();
-  47   1          _nop_();
-  48   1          _nop_();
-  49   1          _nop_();
-  50   1          _nop_();
-  51   1          _nop_();
-  52   1          _nop_();
-  53   1          _nop_();
-  54   1          _nop_();
-C51 COMPILER V9.60.7.0   WS2812B                                                           11/02/2023 17:52:46 PAGE 2   
+  25          u8 data buf_arr[RGB_LED_COUNT * 3];
+  26          static bit data busy;
+  27          
+  28          rgb_t hsv2rgb_rainbow(hsv_t hsv);
+  29          // rgb_t hsv2rgb_spectrum(hsv_t hsv);
+  30          // rgb_t rgb_heat_color(uint8_t temperature);
+  31          
+  32          void spi_isr() interrupt 9 {
+  33   1          SPSTAT = 0xc0;
+  34   1          busy = 0;
+  35   1      }
+  36          
+  37          void spi_open() {
+  38   1          SPSTAT = 0xc0;
+  39   1          SPCTL = 0xd4;  // 1101 0100
+  40   1          IE2 |= 0x02;   // 允许中断
+  41   1          RGB = 0;
+  42   1      }
+  43          
+  44          void spi_close() {
+  45   1          SPCTL = 0x00;
+  46   1          RGB = 0;
+  47   1      }
+  48          
+  49          void send_byte(u8 dat) {
+  50   1          while (busy)
+  51   1              ;
+  52   1          SPDAT = dat;
+  53   1      }
+  54          
+C51 COMPILER V9.60.7.0   WS2812B                                                           11/06/2023 00:06:02 PAGE 2   
 
-  55   1          _nop_();
-  56   1          _nop_();
-  57   1          _nop_();
-  58   1          _nop_();
-  59   1          _nop_();
-  60   1          _nop_();
-  61   1          _nop_();
-  62   1      }
-  63          
-  64          void w1() {
-  65   1          RGB = 1;
-  66   1          _nop_();
-  67   1          _nop_();
-  68   1          _nop_();
-  69   1          _nop_();
-  70   1          _nop_();
-  71   1          _nop_();
-  72   1          _nop_();
-  73   1          _nop_();
-  74   1          _nop_();
-  75   1          _nop_();
-  76   1          _nop_();
-  77   1          _nop_();
-  78   1          _nop_();
-  79   1          _nop_();
-  80   1          _nop_();
-  81   1          _nop_();
-  82   1          _nop_();
-  83   1          _nop_();
-  84   1          _nop_();
-  85   1          RGB = 0;
-  86   1          _nop_();
-  87   1          _nop_();
-  88   1          _nop_();
-  89   1          _nop_();
-  90   1          _nop_();
-  91   1          _nop_();
-  92   1          _nop_();
-  93   1          _nop_();
-  94   1          _nop_();
-  95   1      }
-  96          
-  97          void rgb_set_color(u8 index, u8 r, u8 g, u8 b) {
-  98   1          if (index >= RGB_LED_COUNT) {
-  99   2              return;
- 100   2          }
- 101   1          cache_arr[index].r = r;
- 102   1          cache_arr[index].g = g;
- 103   1          cache_arr[index].b = b;
- 104   1      }
- 105          
- 106          void rgb_update(u8 brightness) {
- 107   1          u8 bi = 0, i = 0, j, dat;
- 108   1          memset(buf_arr, 0, sizeof(buf_arr));
- 109   1          for (i = 0; i < RGB_LED_COUNT; i++) {
- 110   2              rgb_t* rgb = &cache_arr[i];
- 111   2              buf_arr[bi++] = (uint8_t)(((uint16_t)rgb->g * brightness) / 255);
- 112   2              buf_arr[bi++] = (uint8_t)(((uint16_t)rgb->r * brightness) / 255);
- 113   2              buf_arr[bi++] = (uint8_t)(((uint16_t)rgb->b * brightness) / 255);
- 114   2          }
- 115   1          for (i = 0; i < bi; i++) {
- 116   2              dat = buf_arr[i];
-C51 COMPILER V9.60.7.0   WS2812B                                                           11/02/2023 17:52:46 PAGE 3   
+  55          void send_spi() {
+  56   1          u16 len = RGB_LED_COUNT * 3;
+  57   1          u8 j, i;
+  58   1          spi_open();
+  59   1          for (i = 0; i < len; i++) {
+  60   2              u8 d1 = buf_arr[i], buf;
+  61   2              for (j = 0; j < 8; j++) {
+  62   3                  if (d1 & 0x80) {
+  63   4                      buf = 0xFC; /*11111100b;*/
+  64   4                  } else {
+  65   4                      buf = 0XC0; /*11000000b;*/
+  66   4                  }
+  67   3                  send_byte(buf);
+  68   3                  d1 <<= 1;
+  69   3              }
+  70   2          }
+  71   1          spi_close();
+  72   1      }
+  73          
+  74          void rgb_set_color(u8 index, u8 r, u8 g, u8 b) {
+  75   1          if (index >= RGB_LED_COUNT) {
+  76   2              return;
+  77   2          }
+  78   1          cache_arr[index].r = r;
+  79   1          cache_arr[index].g = g;
+  80   1          cache_arr[index].b = b;
+  81   1      }
+  82          
+  83          void rgb_update(u8 brightness) {
+  84   1          u8 bi = 0, i = 0;
+  85   1          memset(buf_arr, 0, sizeof(buf_arr));
+  86   1          for (i = 0; i < RGB_LED_COUNT; i++) {
+  87   2              rgb_t* rgb = &cache_arr[i];
+  88   2              buf_arr[bi++] = (uint8_t)(((uint16_t)rgb->g * brightness) / 255);
+  89   2              buf_arr[bi++] = (uint8_t)(((uint16_t)rgb->r * brightness) / 255);
+  90   2              buf_arr[bi++] = (uint8_t)(((uint16_t)rgb->b * brightness) / 255);
+  91   2          }
+  92   1          send_spi();
+  93   1          delay_us(100);
+  94   1      }
+  95          
+  96          void rgb_clear() {
+  97   1          u8 i = 0;
+  98   1          for (i = 0; i < RGB_LED_COUNT; i++) {
+  99   2              rgb_t* rgb = &cache_arr[i];
+ 100   2              rgb->b = 0;
+ 101   2              rgb->g = 0;
+ 102   2              rgb->r = 0;
+ 103   2          }
+ 104   1          rgb_update(0);
+ 105   1      }
+ 106          
+ 107          void rgb_frame_update(u8 brightness_val) {
+ 108   1          static rgb_t rgb;
+ 109   1          static hsv_t hsv = {0, 100, 255};
+ 110   1      
+ 111   1          rgb = hsv2rgb_rainbow(hsv);
+ 112   1          rgb_set_color(0, rgb.r, rgb.g, rgb.b);
+ 113   1          rgb_set_color(1, rgb.r, rgb.g, rgb.b);
+ 114   1          hsv.h += 1;
+ 115   1          rgb_update(brightness_val);
+ 116   1      }
+C51 COMPILER V9.60.7.0   WS2812B                                                           11/06/2023 00:06:02 PAGE 3   
 
- 117   2              for (j = 0; j < 8; j++) {
- 118   3                  if ((dat << i) & 0x80) {
- 119   4                      w1();
- 120   4                  } else {
- 121   4                      w0();
- 122   4                  }
- 123   3              }
- 124   2          }
- 125   1          delay_us(100);
- 126   1      }
- 127          
- 128          void rgb_clear() {
- 129   1          u8 i = 0;
- 130   1          for (i = 0; i < RGB_LED_COUNT; i++) {
- 131   2              rgb_t* rgb = &cache_arr[i];
- 132   2              rgb->b = 0;
- 133   2              rgb->g = 0;
- 134   2              rgb->r = 0;
- 135   2          }
- 136   1          rgb_update(0);
- 137   1      }
- 138          
- 139          void rgb_frame_update(u8 brightness_val) {
- 140   1          static rgb_t rgb;
- 141   1          static hsv_t hsv = {0, 200, 255};
- 142   1      
- 143   1          rgb = hsv2rgb_rainbow(hsv);
- 144   1          hsv.h += 1;
- 145   1          rgb_set_color(0, rgb.r, rgb.g, rgb.b);
- 146   1          rgb = hsv2rgb_rainbow(hsv);
- 147   1          rgb_set_color(1, rgb.r, rgb.g, rgb.b);
- 148   1          hsv.h += 1;
- 149   1          rgb_update(brightness_val);
- 150   1      }
- 151          
- 152          /**
- 153           * -------------------------------------------------------------------------------------------------
- 154           * RGB 定时器中断刷新程序
- 155           * -------------------------------------------------------------------------------------------------
- 156           */
- 157          
- 158          u8 brightness_timer = 255;
- 159          void rgb_timer_set_brightness(u8 brightness) {
- 160   1          brightness_timer = brightness;
- 161   1      }
- 162          
- 163          void rgb_timer_start() {
- 164   1          // 10毫秒@22.1184MHz
- 165   1          AUXR &= 0xFB;  // 定时器时钟12T模式
- 166   1          T2L = 0x00;    // 设置定时初始值
- 167   1          T2H = 0xB8;    // 设置定时初始值
- 168   1          AUXR |= 0x10;  // 定时器2开始计时
- 169   1          IE2 |= 0x04;   // 使能定时器2中断
+ 117          
+ 118          /**
+ 119           * -------------------------------------------------------------------------------------------------
+ 120           * RGB 定时器中断刷新程序
+ 121           * -------------------------------------------------------------------------------------------------
+ 122           */
+ 123          u8 _timer_count;
+ 124          u8 brightness_timer = 255;
+ 125          void rgb_timer_set_brightness(u8 brightness) {
+ 126   1          brightness_timer = brightness;
+ 127   1      }
+ 128          
+ 129          void rgb_timer_start() {
+ 130   1         AUXR &= 0xFB;                        //定时器时钟12T模式
+ 131   1              T2L = 0x00;                             //设置定时初始值
+ 132   1              T2H = 0x70;                             //设置定时初始值
+ 133   1              AUXR |= 0x10;                   //定时器2开始计时
+ 134   1              IE2 |= 0x04;                    //使能定时器2中断
+ 135   1      }
+ 136          void rgb_timer_stop() {
+ 137   1          AUXR &= 0xef;
+ 138   1      }
+ 139          
+ 140          void ws2812b_timer_isr() interrupt 12 {
+ 141   1          // _timer_count++;
+ 142   1          // if (_timer_count >= 20) {
+ 143   1          //     rgb_frame_update(brightness_timer);
+ 144   1          //     _timer_count = 0;
+ 145   1          // }
+ 146   1          rgb_frame_update(brightness_timer);
+ 147   1      }
+ 148          
+ 149          /**
+ 150           * -------------------------------------------------------------------------------------------------
+ 151           * RGB HSV颜色处理工具
+ 152           * -------------------------------------------------------------------------------------------------
+ 153           */
+ 154          
+ 155          #define K255 255
+ 156          #define K171 171
+ 157          #define K170 170
+ 158          #define K85 85
+ 159          
+ 160          // #define HUE_MAX_RAW 191
+ 161          // #define APPLY_DIMMING(X) (X)
+ 162          // #define HSV_SECTION_6 (0x20)
+ 163          // #define HSV_SECTION_3 (0x40)
+ 164          
+ 165          uint8_t scale8(uint8_t i, uint8_t scale) {
+ 166   1          return (((uint16_t)i) * (1 + (uint16_t)(scale))) >> 8;
+ 167   1      }
+ 168          uint8_t scale8_video(uint8_t i, uint8_t scale) {
+ 169   1          return (((int)i * (int)scale) >> 8) + ((i && scale) ? 1 : 0);
  170   1      }
- 171          void rgb_timer_stop() {
- 172   1          AUXR &= 0xef;  // 关闭定时器2的计时
- 173   1          IE2 &= 0xfb;   // 关闭定时器2的中断使能
- 174   1      }
- 175          
- 176          void timer2_isr(void) interrupt 12 {
- 177   1          rgb_frame_update(brightness_timer);
+ 171          
+ 172          rgb_t rgb_from_values(uint8_t r, uint8_t g, uint8_t b) {
+ 173   1          rgb_t res;
+ 174   1          res.r = r;
+ 175   1          res.g = g;
+ 176   1          res.b = b;
+ 177   1          return res;
  178   1      }
-C51 COMPILER V9.60.7.0   WS2812B                                                           11/02/2023 17:52:46 PAGE 4   
+C51 COMPILER V9.60.7.0   WS2812B                                                           11/06/2023 00:06:02 PAGE 4   
 
  179          
- 180          /**
- 181           * -------------------------------------------------------------------------------------------------
- 182           * RGB HSV颜色处理工具
- 183           * -------------------------------------------------------------------------------------------------
- 184           */
- 185          
- 186          #define K255 255
- 187          #define K171 171
- 188          #define K170 170
- 189          #define K85 85
- 190          
- 191          // #define HUE_MAX_RAW 191
- 192          // #define APPLY_DIMMING(X) (X)
- 193          // #define HSV_SECTION_6 (0x20)
- 194          // #define HSV_SECTION_3 (0x40)
- 195          
- 196          uint8_t scale8(uint8_t i, uint8_t scale) {
- 197   1          return (((uint16_t)i) * (1 + (uint16_t)(scale))) >> 8;
- 198   1      }
- 199          uint8_t scale8_video(uint8_t i, uint8_t scale) {
- 200   1          return (((int)i * (int)scale) >> 8) + ((i && scale) ? 1 : 0);
- 201   1      }
- 202          
- 203          rgb_t rgb_from_values(uint8_t r, uint8_t g, uint8_t b) {
- 204   1          rgb_t res;
- 205   1          res.r = r;
- 206   1          res.g = g;
- 207   1          res.b = b;
- 208   1          return res;
- 209   1      }
- 210          
- 211          rgb_t hsv2rgb_rainbow(hsv_t hsv) {
- 212   1          // Yellow has a higher inherent brightness than
- 213   1          // any other color; 'pure' yellow is perceived to
- 214   1          // be 93% as bright as white.  In order to make
- 215   1          // yellow appear the correct relative brightness,
- 216   1          // it has to be rendered brighter than all other
- 217   1          // colors.
- 218   1          // Level Y1 is a moderate boost, the default.
- 219   1          // Level Y2 is a strong boost.
- 220   1          const uint8_t Y1 = 1;
- 221   1          const uint8_t Y2 = 0;
- 222   1      
- 223   1          // G2: Whether to divide all greens by two.
- 224   1          // Depends GREATLY on your particular LEDs
- 225   1          const uint8_t G2 = 0;
- 226   1      
- 227   1          // Gscale: what to scale green down by.
- 228   1          // Depends GREATLY on your particular LEDs
- 229   1          const uint8_t Gscale = 0;
- 230   1      
- 231   1          uint8_t hue = hsv.h;
- 232   1          uint8_t sat = hsv.s;
- 233   1          uint8_t val = hsv.v;
- 234   1      
- 235   1          uint8_t offset = hue & 0x1F;  // 0..31
- 236   1      
- 237   1          // offset8 = offset * 8
- 238   1          uint8_t offset8 = offset << 3;
- 239   1          uint8_t third = scale8(offset8, (256 / 3));  // max = 85
- 240   1      
-C51 COMPILER V9.60.7.0   WS2812B                                                           11/02/2023 17:52:46 PAGE 5   
+ 180          rgb_t hsv2rgb_rainbow(hsv_t hsv) {
+ 181   1          // Yellow has a higher inherent brightness than
+ 182   1          // any other color; 'pure' yellow is perceived to
+ 183   1          // be 93% as bright as white.  In order to make
+ 184   1          // yellow appear the correct relative brightness,
+ 185   1          // it has to be rendered brighter than all other
+ 186   1          // colors.
+ 187   1          // Level Y1 is a moderate boost, the default.
+ 188   1          // Level Y2 is a strong boost.
+ 189   1          const uint8_t Y1 = 1;
+ 190   1          const uint8_t Y2 = 0;
+ 191   1      
+ 192   1          // G2: Whether to divide all greens by two.
+ 193   1          // Depends GREATLY on your particular LEDs
+ 194   1          const uint8_t G2 = 0;
+ 195   1      
+ 196   1          // Gscale: what to scale green down by.
+ 197   1          // Depends GREATLY on your particular LEDs
+ 198   1          const uint8_t Gscale = 0;
+ 199   1      
+ 200   1          uint8_t hue = hsv.h;
+ 201   1          uint8_t sat = hsv.s;
+ 202   1          uint8_t val = hsv.v;
+ 203   1      
+ 204   1          uint8_t offset = hue & 0x1F;  // 0..31
+ 205   1      
+ 206   1          // offset8 = offset * 8
+ 207   1          uint8_t offset8 = offset << 3;
+ 208   1          uint8_t third = scale8(offset8, (256 / 3));  // max = 85
+ 209   1      
+ 210   1          uint8_t r, g, b;
+ 211   1      
+ 212   1          if (!(hue & 0x80)) {
+ 213   2              // 0XX
+ 214   2              if (!(hue & 0x40)) {
+ 215   3                  // 00X
+ 216   3                  // section 0-1
+ 217   3                  if (!(hue & 0x20)) {
+ 218   4                      // 000
+ 219   4                      // case 0: // R -> O
+ 220   4                      r = K255 - third;
+ 221   4                      g = third;
+ 222   4                      b = 0;
+ 223   4                  } else {
+ 224   4                      // 001
+ 225   4                      // case 1: // O -> Y
+ 226   4                      if (Y1) {
+ 227   5                          r = K171;
+ 228   5                          g = K85 + third;
+ 229   5                          b = 0;
+ 230   5                      }
+ 231   4                      if (Y2) {
+ 232   5                          uint8_t twothirds =
+ 233   5                              scale8(offset8, ((256 * 2) / 3));  // max=170
+ 234   5                          r = K170 + third;
+ 235   5                          // uint8_t twothirds = (third << 1);
+ 236   5                          g = K85 + twothirds;
+ 237   5                          b = 0;
+ 238   5                      }
+ 239   4                  }
+ 240   3              } else {
+C51 COMPILER V9.60.7.0   WS2812B                                                           11/06/2023 00:06:02 PAGE 5   
 
- 241   1          uint8_t r, g, b;
- 242   1      
- 243   1          if (!(hue & 0x80)) {
- 244   2              // 0XX
- 245   2              if (!(hue & 0x40)) {
- 246   3                  // 00X
- 247   3                  // section 0-1
- 248   3                  if (!(hue & 0x20)) {
- 249   4                      // 000
- 250   4                      // case 0: // R -> O
- 251   4                      r = K255 - third;
- 252   4                      g = third;
- 253   4                      b = 0;
- 254   4                  } else {
- 255   4                      // 001
- 256   4                      // case 1: // O -> Y
- 257   4                      if (Y1) {
- 258   5                          r = K171;
- 259   5                          g = K85 + third;
- 260   5                          b = 0;
- 261   5                      }
- 262   4                      if (Y2) {
- 263   5                          uint8_t twothirds =
- 264   5                              scale8(offset8, ((256 * 2) / 3));  // max=170
- 265   5                          r = K170 + third;
- 266   5                          // uint8_t twothirds = (third << 1);
- 267   5                          g = K85 + twothirds;
- 268   5                          b = 0;
- 269   5                      }
- 270   4                  }
- 271   3              } else {
- 272   3                  // 01X
- 273   3                  //  section 2-3
- 274   3                  if (!(hue & 0x20)) {
- 275   4                      // 010
- 276   4                      // case 2: // Y -> G
- 277   4                      if (Y1) {
- 278   5                          // uint8_t twothirds = (third << 1);
- 279   5                          uint8_t twothirds =
- 280   5                              scale8(offset8, ((256 * 2) / 3));  // max=170
- 281   5                          r = K171 - twothirds;
- 282   5                          g = K170 + third;
- 283   5                          b = 0;
- 284   5                      }
- 285   4                      if (Y2) {
- 286   5                          r = K255 - offset8;
- 287   5                          g = K255;
- 288   5                          b = 0;
- 289   5                      }
- 290   4                  } else {
- 291   4                      // 011
- 292   4                      // case 3: // G -> A
- 293   4                      r = 0;
- 294   4                      g = K255 - third;
- 295   4                      b = third;
- 296   4                  }
- 297   3              }
- 298   2          } else {
- 299   2              // section 4-7
- 300   2              // 1XX
- 301   2              if (!(hue & 0x40)) {
- 302   3                  // 10X
-C51 COMPILER V9.60.7.0   WS2812B                                                           11/02/2023 17:52:46 PAGE 6   
+ 241   3                  // 01X
+ 242   3                  //  section 2-3
+ 243   3                  if (!(hue & 0x20)) {
+ 244   4                      // 010
+ 245   4                      // case 2: // Y -> G
+ 246   4                      if (Y1) {
+ 247   5                          // uint8_t twothirds = (third << 1);
+ 248   5                          uint8_t twothirds =
+ 249   5                              scale8(offset8, ((256 * 2) / 3));  // max=170
+ 250   5                          r = K171 - twothirds;
+ 251   5                          g = K170 + third;
+ 252   5                          b = 0;
+ 253   5                      }
+ 254   4                      if (Y2) {
+ 255   5                          r = K255 - offset8;
+ 256   5                          g = K255;
+ 257   5                          b = 0;
+ 258   5                      }
+ 259   4                  } else {
+ 260   4                      // 011
+ 261   4                      // case 3: // G -> A
+ 262   4                      r = 0;
+ 263   4                      g = K255 - third;
+ 264   4                      b = third;
+ 265   4                  }
+ 266   3              }
+ 267   2          } else {
+ 268   2              // section 4-7
+ 269   2              // 1XX
+ 270   2              if (!(hue & 0x40)) {
+ 271   3                  // 10X
+ 272   3                  if (!(hue & 0x20)) {
+ 273   4                      uint8_t twothirds =
+ 274   4                          scale8(offset8, ((256 * 2) / 3));  // max=170
+ 275   4                      // 100
+ 276   4                      // case 4: // A -> B
+ 277   4                      r = 0;
+ 278   4                      // uint8_t twothirds = (third << 1);
+ 279   4      
+ 280   4                      g = K171 - twothirds;  // K170?
+ 281   4                      b = K85 + twothirds;
+ 282   4      
+ 283   4                  } else {
+ 284   4                      // 101
+ 285   4                      // case 5: // B -> P
+ 286   4                      r = third;
+ 287   4                      g = 0;
+ 288   4                      b = K255 - third;
+ 289   4                  }
+ 290   3              } else {
+ 291   3                  if (!(hue & 0x20)) {
+ 292   4                      // 110
+ 293   4                      // case 6: // P -- K
+ 294   4                      r = K85 + third;
+ 295   4                      g = 0;
+ 296   4                      b = K171 - third;
+ 297   4      
+ 298   4                  } else {
+ 299   4                      // 111
+ 300   4                      // case 7: // K -> R
+ 301   4                      r = K170 + third;
+ 302   4                      g = 0;
+C51 COMPILER V9.60.7.0   WS2812B                                                           11/06/2023 00:06:02 PAGE 6   
 
- 303   3                  if (!(hue & 0x20)) {
- 304   4                      uint8_t twothirds =
- 305   4                          scale8(offset8, ((256 * 2) / 3));  // max=170
- 306   4                      // 100
- 307   4                      // case 4: // A -> B
- 308   4                      r = 0;
- 309   4                      // uint8_t twothirds = (third << 1);
- 310   4      
- 311   4                      g = K171 - twothirds;  // K170?
- 312   4                      b = K85 + twothirds;
- 313   4      
- 314   4                  } else {
- 315   4                      // 101
- 316   4                      // case 5: // B -> P
- 317   4                      r = third;
- 318   4                      g = 0;
- 319   4                      b = K255 - third;
- 320   4                  }
- 321   3              } else {
- 322   3                  if (!(hue & 0x20)) {
- 323   4                      // 110
- 324   4                      // case 6: // P -- K
- 325   4                      r = K85 + third;
- 326   4                      g = 0;
- 327   4                      b = K171 - third;
- 328   4      
- 329   4                  } else {
- 330   4                      // 111
- 331   4                      // case 7: // K -> R
- 332   4                      r = K170 + third;
- 333   4                      g = 0;
- 334   4                      b = K85 - third;
- 335   4                  }
- 336   3              }
- 337   2          }
- 338   1      
- 339   1          // This is one of the good places to scale the green down,
- 340   1          // although the client can scale green down as well.
- 341   1          if (G2)
- 342   1              g = g >> 1;
- 343   1          if (Gscale)
- 344   1              g = scale8_video(g, Gscale);
- 345   1      
- 346   1          // Scale down colors if we're desaturated at all
- 347   1          // and add the brightness_floor to r, g, and b.
- 348   1          if (sat != 255) {
- 349   2              if (sat == 0) {
- 350   3                  r = 255;
- 351   3                  b = 255;
- 352   3                  g = 255;
- 353   3              } else {
- 354   3                  uint8_t desat = 255 - sat;
- 355   3                  uint8_t satscale, brightness_floor;
- 356   3                  desat = scale8_video(desat, desat);
- 357   3      
- 358   3                  satscale = 255 - desat;
- 359   3                  // satscale = sat; // uncomment to revert to pre-2021 saturation
- 360   3                  // behavior
- 361   3      
- 362   3                  // nscale8x3_video( r, g, b, sat);
- 363   3                  r = scale8(r, satscale);
- 364   3                  g = scale8(g, satscale);
-C51 COMPILER V9.60.7.0   WS2812B                                                           11/02/2023 17:52:46 PAGE 7   
+ 303   4                      b = K85 - third;
+ 304   4                  }
+ 305   3              }
+ 306   2          }
+ 307   1      
+ 308   1          // This is one of the good places to scale the green down,
+ 309   1          // although the client can scale green down as well.
+ 310   1          if (G2)
+ 311   1              g = g >> 1;
+ 312   1          if (Gscale)
+ 313   1              g = scale8_video(g, Gscale);
+ 314   1      
+ 315   1          // Scale down colors if we're desaturated at all
+ 316   1          // and add the brightness_floor to r, g, and b.
+ 317   1          if (sat != 255) {
+ 318   2              if (sat == 0) {
+ 319   3                  r = 255;
+ 320   3                  b = 255;
+ 321   3                  g = 255;
+ 322   3              } else {
+ 323   3                  uint8_t desat = 255 - sat;
+ 324   3                  uint8_t satscale, brightness_floor;
+ 325   3                  desat = scale8_video(desat, desat);
+ 326   3      
+ 327   3                  satscale = 255 - desat;
+ 328   3                  // satscale = sat; // uncomment to revert to pre-2021 saturation
+ 329   3                  // behavior
+ 330   3      
+ 331   3                  // nscale8x3_video( r, g, b, sat);
+ 332   3                  r = scale8(r, satscale);
+ 333   3                  g = scale8(g, satscale);
+ 334   3                  b = scale8(b, satscale);
+ 335   3      
+ 336   3                  brightness_floor = desat;
+ 337   3                  r += brightness_floor;
+ 338   3                  g += brightness_floor;
+ 339   3                  b += brightness_floor;
+ 340   3              }
+ 341   2          }
+ 342   1      
+ 343   1          // Now scale everything down if we're at value < 255.
+ 344   1          if (val != 255) {
+ 345   2              val = scale8_video(val, val);
+ 346   2              if (val == 0) {
+ 347   3                  r = 0;
+ 348   3                  g = 0;
+ 349   3                  b = 0;
+ 350   3              } else {
+ 351   3                  // nscale8x3_video( r, g, b, val);
+ 352   3                  r = scale8(r, val);
+ 353   3                  g = scale8(g, val);
+ 354   3                  b = scale8(b, val);
+ 355   3              }
+ 356   2          }
+ 357   1      
+ 358   1          return rgb_from_values(r, g, b);
+ 359   1      }
+ 360          /*
+ 361          rgb_t hsv2rgb_raw(hsv_t hsv) {
+ 362              // Convert hue, saturation and brightness ( HSV/HSB ) to RGB
+ 363              // "Dimming" is used on saturation and brightness to make
+ 364              // the output more visually linear.
+C51 COMPILER V9.60.7.0   WS2812B                                                           11/06/2023 00:06:02 PAGE 7   
 
- 365   3                  b = scale8(b, satscale);
- 366   3      
- 367   3                  brightness_floor = desat;
- 368   3                  r += brightness_floor;
- 369   3                  g += brightness_floor;
- 370   3                  b += brightness_floor;
- 371   3              }
- 372   2          }
- 373   1      
- 374   1          // Now scale everything down if we're at value < 255.
- 375   1          if (val != 255) {
- 376   2              val = scale8_video(val, val);
- 377   2              if (val == 0) {
- 378   3                  r = 0;
- 379   3                  g = 0;
- 380   3                  b = 0;
- 381   3              } else {
- 382   3                  // nscale8x3_video( r, g, b, val);
- 383   3                  r = scale8(r, val);
- 384   3                  g = scale8(g, val);
- 385   3                  b = scale8(b, val);
- 386   3              }
- 387   2          }
- 388   1      
- 389   1          return rgb_from_values(r, g, b);
- 390   1      }
- 391          /*
- 392          rgb_t hsv2rgb_raw(hsv_t hsv) {
- 393              // Convert hue, saturation and brightness ( HSV/HSB ) to RGB
- 394              // "Dimming" is used on saturation and brightness to make
- 395              // the output more visually linear.
- 396          
- 397              // Apply dimming curves
- 398              uint8_t value = APPLY_DIMMING(hsv.v);
- 399              uint8_t saturation = hsv.s;
- 400          
- 401              // The brightness floor is minimum number that all of
- 402              // R, G, and B will be set to.
- 403              uint8_t invsat = APPLY_DIMMING(255 - saturation);
- 404              uint8_t brightness_floor = (value * invsat) / 256;
- 405          
- 406              // The color amplitude is the maximum amount of R, G, and B
- 407              // that will be added on top of the brightness_floor to
- 408              // create the specific hue desired.
- 409              uint8_t color_amplitude = value - brightness_floor;
- 410          
- 411              // Figure out which section of the hue wheel we're in,
- 412              // and how far offset we are withing that section
- 413              uint8_t section = hsv.h / HSV_SECTION_3;  // 0..2
- 414              uint8_t offset = hsv.h % HSV_SECTION_3;   // 0..63
- 415          
- 416              uint8_t rampup = offset;                          // 0..63
- 417              uint8_t rampdown = (HSV_SECTION_3 - 1) - offset;  // 63..0
- 418          
- 419              // We now scale rampup and rampdown to a 0-255 range -- at least
- 420              // in theory, but here's where architecture-specific decsions
- 421              // come in to play:
- 422              // To scale them up to 0-255, we'd want to multiply by 4.
- 423              // But in the very next step, we multiply the ramps by other
- 424              // values and then divide the resulting product by 256.
- 425              // So which is faster?
- 426              //   ((ramp * 4) * othervalue) / 256
-C51 COMPILER V9.60.7.0   WS2812B                                                           11/02/2023 17:52:46 PAGE 8   
+ 365          
+ 366              // Apply dimming curves
+ 367              uint8_t value = APPLY_DIMMING(hsv.v);
+ 368              uint8_t saturation = hsv.s;
+ 369          
+ 370              // The brightness floor is minimum number that all of
+ 371              // R, G, and B will be set to.
+ 372              uint8_t invsat = APPLY_DIMMING(255 - saturation);
+ 373              uint8_t brightness_floor = (value * invsat) / 256;
+ 374          
+ 375              // The color amplitude is the maximum amount of R, G, and B
+ 376              // that will be added on top of the brightness_floor to
+ 377              // create the specific hue desired.
+ 378              uint8_t color_amplitude = value - brightness_floor;
+ 379          
+ 380              // Figure out which section of the hue wheel we're in,
+ 381              // and how far offset we are withing that section
+ 382              uint8_t section = hsv.h / HSV_SECTION_3;  // 0..2
+ 383              uint8_t offset = hsv.h % HSV_SECTION_3;   // 0..63
+ 384          
+ 385              uint8_t rampup = offset;                          // 0..63
+ 386              uint8_t rampdown = (HSV_SECTION_3 - 1) - offset;  // 63..0
+ 387          
+ 388              // We now scale rampup and rampdown to a 0-255 range -- at least
+ 389              // in theory, but here's where architecture-specific decsions
+ 390              // come in to play:
+ 391              // To scale them up to 0-255, we'd want to multiply by 4.
+ 392              // But in the very next step, we multiply the ramps by other
+ 393              // values and then divide the resulting product by 256.
+ 394              // So which is faster?
+ 395              //   ((ramp * 4) * othervalue) / 256
+ 396              // or
+ 397              //   ((ramp    ) * othervalue) /  64
+ 398              // It depends on your processor architecture.
+ 399              // On 8-bit AVR, the "/ 256" is just a one-cycle register move,
+ 400              // but the "/ 64" might be a multicycle shift process. So on AVR
+ 401              // it's faster do multiply the ramp values by four, and then
+ 402              // divide by 256.
+ 403              // On ARM, the "/ 256" and "/ 64" are one cycle each, so it's
+ 404              // faster to NOT multiply the ramp values by four, and just to
+ 405              // divide the resulting product by 64 (instead of 256).
+ 406              // Moral of the story: trust your profiler, not your insticts.
+ 407          
+ 408              // Since there's an AVR assembly version elsewhere, we'll
+ 409              // assume what we're on an architecture where any number of
+ 410              // bit shifts has roughly the same cost, and we'll remove the
+ 411              // redundant math at the source level:
+ 412          
+ 413              //  // scale up to 255 range
+ 414              //  //rampup *= 4; // 0..252
+ 415              //  //rampdown *= 4; // 0..252
+ 416          
+ 417              // compute color-amplitude-scaled-down versions of rampup and rampdown
+ 418              uint8_t rampup_amp_adj = (rampup * color_amplitude) / (256 / 4);
+ 419              uint8_t rampdown_amp_adj = (rampdown * color_amplitude) / (256 / 4);
+ 420          
+ 421              // add brightness_floor offset to everything
+ 422              uint8_t rampup_adj_with_floor = rampup_amp_adj + brightness_floor;
+ 423              uint8_t rampdown_adj_with_floor = rampdown_amp_adj + brightness_floor;
+ 424          
+ 425              rgb_t rgb;
+ 426              if (section) {
+C51 COMPILER V9.60.7.0   WS2812B                                                           11/06/2023 00:06:02 PAGE 8   
 
- 427              // or
- 428              //   ((ramp    ) * othervalue) /  64
- 429              // It depends on your processor architecture.
- 430              // On 8-bit AVR, the "/ 256" is just a one-cycle register move,
- 431              // but the "/ 64" might be a multicycle shift process. So on AVR
- 432              // it's faster do multiply the ramp values by four, and then
- 433              // divide by 256.
- 434              // On ARM, the "/ 256" and "/ 64" are one cycle each, so it's
- 435              // faster to NOT multiply the ramp values by four, and just to
- 436              // divide the resulting product by 64 (instead of 256).
- 437              // Moral of the story: trust your profiler, not your insticts.
- 438          
- 439              // Since there's an AVR assembly version elsewhere, we'll
- 440              // assume what we're on an architecture where any number of
- 441              // bit shifts has roughly the same cost, and we'll remove the
- 442              // redundant math at the source level:
- 443          
- 444              //  // scale up to 255 range
- 445              //  //rampup *= 4; // 0..252
- 446              //  //rampdown *= 4; // 0..252
+ 427                  if (section == 1) {
+ 428                      // section 1: 0x40..0x7F
+ 429                      rgb.r = brightness_floor;
+ 430                      rgb.g = rampdown_adj_with_floor;
+ 431                      rgb.b = rampup_adj_with_floor;
+ 432                  } else {
+ 433                      // section 2; 0x80..0xBF
+ 434                      rgb.r = rampup_adj_with_floor;
+ 435                      rgb.g = brightness_floor;
+ 436                      rgb.b = rampdown_adj_with_floor;
+ 437                  }
+ 438              } else {
+ 439                  // section 0: 0x00..0x3F
+ 440                  rgb.r = rampdown_adj_with_floor;
+ 441                  rgb.g = rampup_adj_with_floor;
+ 442                  rgb.b = brightness_floor;
+ 443              }
+ 444          
+ 445              return rgb;
+ 446          }
  447          
- 448              // compute color-amplitude-scaled-down versions of rampup and rampdown
- 449              uint8_t rampup_amp_adj = (rampup * color_amplitude) / (256 / 4);
- 450              uint8_t rampdown_amp_adj = (rampdown * color_amplitude) / (256 / 4);
- 451          
- 452              // add brightness_floor offset to everything
- 453              uint8_t rampup_adj_with_floor = rampup_amp_adj + brightness_floor;
- 454              uint8_t rampdown_adj_with_floor = rampdown_amp_adj + brightness_floor;
+ 448          rgb_t hsv2rgb_spectrum(hsv_t hsv) {
+ 449              hsv.h = scale8(hsv.h, HUE_MAX_RAW);
+ 450              return hsv2rgb_raw(hsv);
+ 451          }
+ 452          
+ 453          rgb_t rgb_heat_color(uint8_t temperature) {
+ 454              rgb_t heatcolor;
  455          
- 456              rgb_t rgb;
- 457              if (section) {
- 458                  if (section == 1) {
- 459                      // section 1: 0x40..0x7F
- 460                      rgb.r = brightness_floor;
- 461                      rgb.g = rampdown_adj_with_floor;
- 462                      rgb.b = rampup_adj_with_floor;
- 463                  } else {
- 464                      // section 2; 0x80..0xBF
- 465                      rgb.r = rampup_adj_with_floor;
- 466                      rgb.g = brightness_floor;
- 467                      rgb.b = rampdown_adj_with_floor;
- 468                  }
- 469              } else {
- 470                  // section 0: 0x00..0x3F
- 471                  rgb.r = rampdown_adj_with_floor;
- 472                  rgb.g = rampup_adj_with_floor;
- 473                  rgb.b = brightness_floor;
- 474              }
- 475          
- 476              return rgb;
- 477          }
- 478          
- 479          rgb_t hsv2rgb_spectrum(hsv_t hsv) {
- 480              hsv.h = scale8(hsv.h, HUE_MAX_RAW);
- 481              return hsv2rgb_raw(hsv);
- 482          }
+ 456              // Scale 'heat' down from 0-255 to 0-191,
+ 457              // which can then be easily divided into three
+ 458              // equal 'thirds' of 64 units each.
+ 459              uint8_t t192 = scale8_video(temperature, 191);
+ 460          
+ 461              // calculate a value that ramps up from
+ 462              // zero to 255 in each 'third' of the scale.
+ 463              uint8_t heatramp = t192 & 0x3F;  // 0..63
+ 464              heatramp <<= 2;                  // scale up to 0..252
+ 465          
+ 466              // now figure out which third of the spectrum we're in:
+ 467              if (t192 & 0x80) {
+ 468                  // we're in the hottest third
+ 469                  heatcolor.r = 255;       // full red
+ 470                  heatcolor.g = 255;       // full green
+ 471                  heatcolor.b = heatramp;  // ramp up blue
+ 472              } else if (t192 & 0x40) {
+ 473                  // we're in the middle third
+ 474                  heatcolor.r = 255;       // full red
+ 475                  heatcolor.g = heatramp;  // ramp up green
+ 476                  heatcolor.b = 0;         // no blue
+ 477              } else {
+ 478                  // we're in the coolest third
+ 479                  heatcolor.r = heatramp;  // ramp up red
+ 480                  heatcolor.g = 0;         // no green
+ 481                  heatcolor.b = 0;         // no blue
+ 482              }
  483          
- 484          rgb_t rgb_heat_color(uint8_t temperature) {
- 485              rgb_t heatcolor;
- 486          
- 487              // Scale 'heat' down from 0-255 to 0-191,
- 488              // which can then be easily divided into three
-C51 COMPILER V9.60.7.0   WS2812B                                                           11/02/2023 17:52:46 PAGE 9   
-
- 489              // equal 'thirds' of 64 units each.
- 490              uint8_t t192 = scale8_video(temperature, 191);
- 491          
- 492              // calculate a value that ramps up from
- 493              // zero to 255 in each 'third' of the scale.
- 494              uint8_t heatramp = t192 & 0x3F;  // 0..63
- 495              heatramp <<= 2;                  // scale up to 0..252
- 496          
- 497              // now figure out which third of the spectrum we're in:
- 498              if (t192 & 0x80) {
- 499                  // we're in the hottest third
- 500                  heatcolor.r = 255;       // full red
- 501                  heatcolor.g = 255;       // full green
- 502                  heatcolor.b = heatramp;  // ramp up blue
- 503              } else if (t192 & 0x40) {
- 504                  // we're in the middle third
- 505                  heatcolor.r = 255;       // full red
- 506                  heatcolor.g = heatramp;  // ramp up green
- 507                  heatcolor.b = 0;         // no blue
- 508              } else {
- 509                  // we're in the coolest third
- 510                  heatcolor.r = heatramp;  // ramp up red
- 511                  heatcolor.g = 0;         // no green
- 512                  heatcolor.b = 0;         // no blue
- 513              }
- 514          
- 515              return heatcolor;
- 516          }*/
+ 484              return heatcolor;
+ 485          }*/
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   1278    ----
+C51 COMPILER V9.60.7.0   WS2812B                                                           11/06/2023 00:06:02 PAGE 9   
+
+   CODE SIZE        =   1202    ----
    CONSTANT SIZE    =   ----    ----
-   XDATA SIZE       =     19      33
+   XDATA SIZE       =     14      35
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =   ----    ----
+   DATA SIZE        =      6    ----
    IDATA SIZE       =   ----    ----
-   BIT SIZE         =   ----    ----
+   BIT SIZE         =      1    ----
 END OF MODULE INFORMATION.
 
 

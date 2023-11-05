@@ -3,16 +3,8 @@
  * @Blog: saisaiwa.com
  * @Author: ccy
  * @Date: 2023-11-02 11:19:34
- * @LastEditTime: 2023-11-03 17:51:23
- */
-/*
- * @Description:
- * @Blog: saisaiwa.com
- * @Author: ccy
- * @Date: 2023-11-02 11:19:34
  * @LastEditTime: 2023-11-03 17:06:25
  */
-
 #include "eeprom.h"
 #include "gui.h"
 #include "rx8025.h"
@@ -32,14 +24,14 @@
 #define PAGE_MENU_FLAG_RGB_OPEN 0x01
 #define PAGE_MENU_FLAG_SET_CLOCK 0x02
 
-u8 vfd_brightness = 7;                // VFD亮度等级 1~7
-u8 rgb_brightness = 3;                // RGB亮度等级 1~255对应1~3级调节
-bool rgb_open = true;                 // RGB开关
-u8 config = 0;                        // 用户配置信息
-u8 page_flag = PAGE_FLAG_CLOCK_TIME;  // 页面显示内容
+u8 vfd_brightness = 7;  // VFD亮度等级 1~7
+u8 rgb_brightness = 3;  // RGB亮度等级 1~255对应1~3级调节
+bool rgb_open = true;   // RGB开关
+u8 config = 0;          // 用户配置信息
+u8 page_flag;           // 页面显示内容
 u8 page_menu_flag = PAGE_MENU_FLAG_RGB_BLK;  // 菜单选项Flag
 rx8025_timeinfo timeinfo;
-u8 data buffer[7];    // 显示缓存
+u8 data buffer[9];    // 显示缓存
 bool colon_flag = 0;  // 冒号显示状态
 
 void page_menu();
@@ -52,19 +44,29 @@ void main() {
     hal_init_uart();
     rx8025t_init();
     vfd_gui_init();
-    config = ee_read(STORE_ADDR);
-    // 规则： 8bit 最高位和最低位如果不是1则需要清数据
-    if ((config & 0x81) >= 1) {
-        ee_erase(STORE_ADDR);
-        config = 0x81;
-    } else {
-        // 读取数据 低位起： 第二位是rgb开关控制位，第三第四位是rgb亮度调节
-        rgb_open = config & 0x02;
-        rgb_brightness = (config >> 2) & 0x03;
-    }
+    vfd_gui_set_blk_level(vfd_brightness);
+    rgb_timer_stop();
+    // config = ee_read(STORE_ADDR);
+    // // 规则： 8bit 最高位和最低位如果不是1则需要清数据
+    // if ((config & 0x81) >= 1) {
+    //     ee_erase(STORE_ADDR);
+    //     config = 0x81;
+    // } else {
+    //     // 读取数据 低位起： 第二位是rgb开关控制位，第三第四位是rgb亮度调节
+    //     rgb_open = config & 0x02;
+    //     rgb_brightness = (config >> 2) & 0x03;
+    // }
     rgb_timer_set_brightness((u8)map(rgb_brightness, 0, 3, 0, 255));
     rgb_timer_start();
+    page_flag = PAGE_FLAG_CLOCK_TIME;
+
     while (1) {
+        // static uint8_t arr[3], ci;
+        // arr[0] = 0x80;
+        // arr[1] = 0x00;
+        // arr[2] = 0x00;
+        // sendDigAndData(1, arr, 3);
+        // delay_ms(500);
         if (page_flag == PAGE_FLAG_CLOCK_TIME ||
             page_flag == PAGE_FLAG_CLOCK_DATE) {
             page_main();
@@ -86,6 +88,9 @@ void page_main() {
     }
     vfd_gui_set_text(buffer, colon_flag);
     delay_ms(500);
+    // hal_uart_send(buffer);
+    // hal_uart_send("\n");
+    printf("Time:%02bd-%02bd\n", timeinfo.min, timeinfo.sec);
 }
 
 void page_menu() {

@@ -22,76 +22,53 @@ typedef struct {
 } hsv_t;
 
 rgb_t xdata cache_arr[RGB_LED_COUNT];
-u8 xdata buf_arr[RGB_LED_COUNT * 3];
+u8 data buf_arr[RGB_LED_COUNT * 3];
+static bit data busy;
 
 rgb_t hsv2rgb_rainbow(hsv_t hsv);
 // rgb_t hsv2rgb_spectrum(hsv_t hsv);
 // rgb_t rgb_heat_color(uint8_t temperature);
 
-void w0() {
-    RGB = 1;
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    RGB = 0;
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
+void spi_isr() interrupt 9 {
+    SPSTAT = 0xc0;
+    busy = 0;
 }
 
-void w1() {
-    RGB = 1;
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
+void spi_open() {
+    SPSTAT = 0xc0;
+    SPCTL = 0xd4;  // 1101 0100
+    IE2 |= 0x02;   // 允许中断
     RGB = 0;
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
-    _nop_();
+}
+
+void spi_close() {
+    SPCTL = 0x00;
+    RGB = 0;
+}
+
+void send_byte(u8 dat) {
+    while (busy)
+        ;
+    SPDAT = dat;
+}
+
+void send_spi() {
+    u16 len = RGB_LED_COUNT * 3;
+    u8 j, i;
+    spi_open();
+    for (i = 0; i < len; i++) {
+        u8 d1 = buf_arr[i], buf;
+        for (j = 0; j < 8; j++) {
+            if (d1 & 0x80) {
+                buf = 0xFC; /*11111100b;*/
+            } else {
+                buf = 0XC0; /*11000000b;*/
+            }
+            send_byte(buf);
+            d1 <<= 1;
+        }
+    }
+    spi_close();
 }
 
 void rgb_set_color(u8 index, u8 r, u8 g, u8 b) {
@@ -104,7 +81,7 @@ void rgb_set_color(u8 index, u8 r, u8 g, u8 b) {
 }
 
 void rgb_update(u8 brightness) {
-    u8 bi = 0, i = 0, j, dat;
+    u8 bi = 0, i = 0;
     memset(buf_arr, 0, sizeof(buf_arr));
     for (i = 0; i < RGB_LED_COUNT; i++) {
         rgb_t* rgb = &cache_arr[i];
@@ -112,16 +89,7 @@ void rgb_update(u8 brightness) {
         buf_arr[bi++] = (uint8_t)(((uint16_t)rgb->r * brightness) / 255);
         buf_arr[bi++] = (uint8_t)(((uint16_t)rgb->b * brightness) / 255);
     }
-    for (i = 0; i < bi; i++) {
-        dat = buf_arr[i];
-        for (j = 0; j < 8; j++) {
-            if ((dat << i) & 0x80) {
-                w1();
-            } else {
-                w0();
-            }
-        }
-    }
+    send_spi();
     delay_us(100);
 }
 
@@ -138,12 +106,10 @@ void rgb_clear() {
 
 void rgb_frame_update(u8 brightness_val) {
     static rgb_t rgb;
-    static hsv_t hsv = {0, 200, 255};
+    static hsv_t hsv = {0, 100, 255};
 
     rgb = hsv2rgb_rainbow(hsv);
-    hsv.h += 1;
     rgb_set_color(0, rgb.r, rgb.g, rgb.b);
-    rgb = hsv2rgb_rainbow(hsv);
     rgb_set_color(1, rgb.r, rgb.g, rgb.b);
     hsv.h += 1;
     rgb_update(brightness_val);
@@ -154,26 +120,29 @@ void rgb_frame_update(u8 brightness_val) {
  * RGB 定时器中断刷新程序
  * -------------------------------------------------------------------------------------------------
  */
-
+u8 _timer_count;
 u8 brightness_timer = 255;
 void rgb_timer_set_brightness(u8 brightness) {
     brightness_timer = brightness;
 }
 
 void rgb_timer_start() {
-    // 10毫秒@22.1184MHz
-    AUXR &= 0xFB;  // 定时器时钟12T模式
-    T2L = 0x00;    // 设置定时初始值
-    T2H = 0xB8;    // 设置定时初始值
-    AUXR |= 0x10;  // 定时器2开始计时
-    IE2 |= 0x04;   // 使能定时器2中断
+   AUXR &= 0xFB;			//定时器时钟12T模式
+	T2L = 0x00;				//设置定时初始值
+	T2H = 0x70;				//设置定时初始值
+	AUXR |= 0x10;			//定时器2开始计时
+	IE2 |= 0x04;			//使能定时器2中断
 }
 void rgb_timer_stop() {
-    AUXR &= 0xef;  // 关闭定时器2的计时
-    IE2 &= 0xfb;   // 关闭定时器2的中断使能
+    AUXR &= 0xef;
 }
 
-void timer2_isr(void) interrupt 12 {
+void ws2812b_timer_isr() interrupt 12 {
+    // _timer_count++;
+    // if (_timer_count >= 20) {
+    //     rgb_frame_update(brightness_timer);
+    //     _timer_count = 0;
+    // }
     rgb_frame_update(brightness_timer);
 }
 

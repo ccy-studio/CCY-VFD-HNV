@@ -3,7 +3,7 @@
   "type": "C51",
   "dependenceList": [],
   "srcDirs": [
-    "src"
+    "/Mac/STC_51/Workspace/CCY-VFD-HNV/src"
   ],
   "outDir": "build",
   "virtualFolder": {

@@ -3,25 +3,57 @@
 u8 lightOff = 1;    // 背光开关
 u8 lightLevel = 5;  // 亮度级别
 static u8 xdata send_buf[24] = {0};
-const u32 xdata fonts[1];
+const u32 xdata fonts[37] = {
+    0x333300,  // ASCII:0,ASCII_N:48 index:0
+    0x201000,  // ASCII:1,ASCII_N:49 index:1
+    0xe12100,  // ASCII:2,ASCII_N:50 index:2
+    0xe13000,  // ASCII:3,ASCII_N:51 index:3
+    0xe21000,  // ASCII:4,ASCII_N:52 index:4
+    0xc33000,  // ASCII:5,ASCII_N:53 index:5
+    0xc33100,  // ASCII:6,ASCII_N:54 index:6
+    0x211000,  // ASCII:7,ASCII_N:55 index:7
+    0xe33100,  // ASCII:8,ASCII_N:56 index:8
+    0xe33000,  // ASCII:9,ASCII_N:57 index:9
+    0x080400,  // ASCII::,ASCII_N:58 index:10
+    0xe31100,  // ASCII:A,ASCII_N:65 index:11
+    0xa93400,  // ASCII:B,ASCII_N:66 index:12
+    0x032100,  // ASCII:C,ASCII_N:67 index:13
+    0x293400,  // ASCII:D,ASCII_N:68 index:14
+    0xc32100,  // ASCII:E,ASCII_N:69 index:15
+    0xc30100,  // ASCII:F,ASCII_N:70 index:16
+    0xc33100,  // ASCII:G,ASCII_N:71 index:17
+    0xe21100,  // ASCII:H,ASCII_N:72 index:18
+    0x092400,  // ASCII:I,ASCII_N:73 index:19
+    0x082400,  // ASCII:J,ASCII_N:74 index:20
+    0x520900,  // ASCII:K,ASCII_N:75 index:21
+    0x022100,  // ASCII:L,ASCII_N:76 index:22
+    0x361100,  // ASCII:M,ASCII_N:77 index:23
+    0x261900,  // ASCII:N,ASCII_N:78 index:24
+    0x233100,  // ASCII:O,ASCII_N:79 index:25
+    0xe10100,  // ASCII:P,ASCII_N:80 index:26
+    0x233900,  // ASCII:Q,ASCII_N:81 index:27
+    0xe10900,  // ASCII:R,ASCII_N:82 index:28
+    0xc33000,  // ASCII:S,ASCII_N:83 index:29
+    0x090400,  // ASCII:T,ASCII_N:84 index:30
+    0x223000,  // ASCII:U,ASCII_N:85 index:31
+    0x241800,  // ASCII:V,ASCII_N:86 index:32
+    0x221b00,  // ASCII:W,ASCII_N:87 index:33
+    0x140a00,  // ASCII:X,ASCII_N:88 index:34
+    0x140400,  // ASCII:Y,ASCII_N:89 index:35
+    0x112004,  // ASCII:Z,ASCII_N:90 index:36
+};
 
 u32* gui_get_font(char c);
 
 void start_pwm() {
-    PWMA_CCER1 = 0x00;  // 在设置前先清零
-    PWMA_PSCRH = 0x00;
-    PWMA_PSCRL = 0x00;  // 1分频
-    PWMA_ARRH = (u8)(PWM_ARR >> 8);
-    PWMA_ARRL = (u8)PWM_ARR;
-    PWMA_CCR1H = (u8)(PWM_CCR >> 8);
-    PWMA_CCR1L = (u8)PWM_CCR;
-    PWMA_CCMR1 = 0x68;  //
-    PWMA_CCER1 = 0x01;  // 开启CC1
-    // 输出使能
-    PWMA_ENO = 0x04;   // 使能PWM2P输出
-    PWMA_BKR = 0x80;   // 使能主输出
-    PWMA_PS = 0x00;    // P1.2
-    PWMA_CR1 |= 0x81;  // 开始计时
+    PWMA_CCER1 = 0x00;    // 写CCMRx前必须先清零CCERx关闭通道
+    PWMA_CCMR2 = 0x68;    // 设置CC2为PWMA输出模式
+    PWMA_CCER1 = 0x10;    // 使能CC2通道
+    PWMA_CCR2 = PWM_CCR;  // 设置占空比时间
+    PWMA_ARR = PWM_ARR;   // 设置周期时间
+    PWMA_ENO = 0x04;      // 使能PWM2P端口输出
+    PWMA_BKR = 0x80;      // 使能主输出
+    PWMA_CR1 |= 0x81;     // 开始计时
 }
 
 void stop_pwm() {
@@ -33,7 +65,7 @@ void vfd_gui_init() {
     VFD_EN = 1;
     start_pwm();
     // VFD Setting
-    setDisplayMode(3);
+    setDisplayMode(6);
     setModeWirteDisplayMode(0);
     vfd_gui_set_blk_level(lightLevel);
     vfd_gui_clear();
@@ -56,7 +88,7 @@ void vfd_gui_set_one_text(size_t index, char oneChar) {
     arr[0] = (*buf >> 16) & 0xFF;
     arr[1] = (*buf >> 8) & 0xFF;
     arr[2] = *buf & 0xFF;
-    sendDigAndData(index * 3, arr, 3);
+    sendDigAndData(0, arr, 3);
 }
 
 void vfd_gui_set_icon(u32 buf) {
@@ -80,11 +112,11 @@ u8 vfd_gui_set_text(const char* string, const u8 colon) {
             send_buf[index++] = *buf & 0xFF;
         }
     }
-    if (colon) {
-        send_buf[5] |= 0x10;
-        send_buf[11] |= 0x10;
-    }
-    sendDigAndData(3, send_buf, 24);
+    // if (colon) {
+    //     send_buf[5] |= 0x10;
+    //     send_buf[11] |= 0x10;
+    // }
+    sendDigAndData(0, send_buf, 24);
     return 1;
 }
 
@@ -112,11 +144,11 @@ u32* gui_get_font(char c) {
     if (c == ' ') {
         return 0x00;
     }
-    if (c >= 33 && c <= 96) {
-        // ! ~ `
-        return &fonts[map(c, 33, 96, 0, 63)];
+    if (c >= 48 && c <= 58) {
+        return &fonts[map(c, 48, 58, 0, 10)];
+    } else if (c >= 65 && c <= 90) {
+        return &fonts[map(c, 65, 90, 11, 36)];
     } else if (c >= 97 && c <= 122) {
-        // a~z
         return gui_get_font(c - 32);
     } else {
         return 0;

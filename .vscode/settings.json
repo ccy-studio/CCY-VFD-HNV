@@ -1,1 +1,12 @@
-{}
+{
+    "files.associations": {
+        "gui.h": "c",
+        "pt6315.h": "c",
+        "sys.h": "c",
+        "stc8h.h": "c",
+        "STC8H.H": "cpp",
+        "eeprom.h": "c"
+    },
+    "files.autoGuessEncoding": true,
+    "files.encoding": "gb2312"
+}
