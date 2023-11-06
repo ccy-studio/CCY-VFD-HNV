@@ -1,10 +1,10 @@
-C51 COMPILER V9.60.7.0   MAIN                                                              11/06/2023 00:06:02 PAGE 1   
+C51 COMPILER V9.60.7.0   MAIN                                                              11/06/2023 10:23:47 PAGE 1   
 
 
 C51 COMPILER V9.60.7.0, COMPILATION OF MODULE MAIN
 OBJECT MODULE PLACED IN .\Objects\main.obj
-COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE src\main.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDIR(.\src\lib\INC) DEBUG OB
-                    -JECTEXTEND PRINT(.\Listings\main.lst) OBJECT(.\Objects\main.obj)
+COMPILER INVOKED BY: D:\Embedded_drive\Keil_v5\C51\BIN\C51.EXE src\main.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDIR(.\src\li
+                    -b\INC) DEBUG OBJECTEXTEND PRINT(.\Listings\main.lst) OBJECT(.\Objects\main.obj)
 
 line level    source
 
@@ -13,9 +13,9 @@ line level    source
    3           * @Blog: saisaiwa.com
    4           * @Author: ccy
    5           * @Date: 2023-11-02 11:19:34
-   6           * @LastEditTime: 2023-11-03 17:06:25
+   6           * @LastEditTime: 2023-11-06 10:15:11
    7           */
-   8          #include "eeprom.h"
+   8          // #include "eeprom.h"
    9          #include "gui.h"
   10          #include "rx8025.h"
   11          #include "ws2812b.h"
@@ -44,113 +44,128 @@ line level    source
   34          u8 data buffer[9];    // 显示缓存
   35          bool colon_flag = 0;  // 冒号显示状态
   36          
-  37          void page_menu();
-  38          void page_main();
-  39          
-  40          void main() {
-  41   1          P_SW2 |= 0x80;  // 使能EAXFR寄存器 XFR
-  42   1          hal_init_all_gpio();
-  43   1          hal_init_systick();
-  44   1          hal_init_uart();
-  45   1          rx8025t_init();
-  46   1          vfd_gui_init();
-  47   1          vfd_gui_set_blk_level(vfd_brightness);
-  48   1          rgb_timer_stop();
-  49   1          // config = ee_read(STORE_ADDR);
-  50   1          // // 规则： 8bit 最高位和最低位如果不是1则需要清数据
-  51   1          // if ((config & 0x81) >= 1) {
-  52   1          //     ee_erase(STORE_ADDR);
-  53   1          //     config = 0x81;
-  54   1          // } else {
-C51 COMPILER V9.60.7.0   MAIN                                                              11/06/2023 00:06:02 PAGE 2   
+  37          u16 data time_isr_count;
+  38          u32 data rgb_wait_count;
+  39          u32 data set_wait_count;
+  40          
+  41          void page_menu();
+  42          void time_start();
+  43          void time_cancel();
+  44          
+  45          void main() {
+  46   1          P_SW2 |= 0x80;  // 使能EAXFR寄存器 XFR
+  47   1          hal_init_all_gpio();
+  48   1          hal_init_systick();
+  49   1          hal_init_uart();
+  50   1          rx8025t_init();
+  51   1          vfd_gui_init();
+  52   1          vfd_gui_set_blk_level(vfd_brightness);
+  53   1          // config = ee_read(STORE_ADDR);
+  54   1          // // 规则： 8bit 最高位和最低位如果不是1则需要清数据
+C51 COMPILER V9.60.7.0   MAIN                                                              11/06/2023 10:23:47 PAGE 2   
 
-  55   1          //     // 读取数据 低位起： 第二位是rgb开关控制位，第三第四位是rgb亮度调节
-  56   1          //     rgb_open = config & 0x02;
-  57   1          //     rgb_brightness = (config >> 2) & 0x03;
-  58   1          // }
-  59   1          rgb_timer_set_brightness((u8)map(rgb_brightness, 0, 3, 0, 255));
-  60   1          rgb_timer_start();
-  61   1          page_flag = PAGE_FLAG_CLOCK_TIME;
-  62   1      
-  63   1          while (1) {
-  64   2              // static uint8_t arr[3], ci;
-  65   2              // arr[0] = 0x80;
-  66   2              // arr[1] = 0x00;
-  67   2              // arr[2] = 0x00;
-  68   2              // sendDigAndData(1, arr, 3);
-  69   2              // delay_ms(500);
-  70   2              if (page_flag == PAGE_FLAG_CLOCK_TIME ||
-  71   2                  page_flag == PAGE_FLAG_CLOCK_DATE) {
-  72   3                  page_main();
-  73   3              } else if (page_flag == PAGE_FLAG_MENU) {
-  74   3                  page_menu();
-  75   3              }
-  76   2          }
-  77   1      }
-  78          
-  79          void page_main() {
-  80   1          rx8025_time_get(&timeinfo);
-  81   1          memset(buffer, 0, sizeof(buffer));
-  82   1          if (page_flag == PAGE_FLAG_CLOCK_TIME) {
-  83   2              colon_flag = !colon_flag;
-  84   2              formart_time(&timeinfo, &buffer);
-  85   2          } else if (page_flag == PAGE_FLAG_CLOCK_DATE) {
-  86   2              colon_flag = 0;
-  87   2              formart_date(&timeinfo, &buffer);
-  88   2          }
-  89   1          vfd_gui_set_text(buffer, colon_flag);
-  90   1          delay_ms(500);
-  91   1          // hal_uart_send(buffer);
-  92   1          // hal_uart_send("\n");
-  93   1          printf("Time:%02bd-%02bd\n", timeinfo.min, timeinfo.sec);
-  94   1      }
-  95          
-  96          void page_menu() {
-  97   1          memset(buffer, 0, sizeof(buffer));
-  98   1          if (page_menu_flag == PAGE_MENU_FLAG_RGB_BLK) {
-  99   2          } else if (page_menu_flag == PAGE_MENU_FLAG_RGB_OPEN) {
- 100   2          } else if (page_menu_flag == PAGE_MENU_FLAG_SET_CLOCK) {
- 101   2          }
- 102   1          delay_ms(500);
- 103   1      }
- 104          
- 105          void page_menu_click_handle(u8 key) {
- 106   1          if (page_flag == PAGE_FLAG_MENU) {
- 107   2          }
- 108   1      }
-*** WARNING C280 IN LINE 105 OF src\main.c: 'key': unreferenced local variable
- 109          
- 110          /**
- 111           * 按键中断触发
- 112           */
- 113          void user_key_isr(void) interrupt 13 {  // 借用13号 原中断号40
- 114   1          u8 intf = P3INTF;
- 115   1          u8 key_flag;
-C51 COMPILER V9.60.7.0   MAIN                                                              11/06/2023 00:06:02 PAGE 3   
+  55   1          // if ((config & 0x81) >= 1) {
+  56   1          //     ee_erase(STORE_ADDR);
+  57   1          //     config = 0x81;
+  58   1          // } else {
+  59   1          //     // 读取数据 低位起： 第二位是rgb开关控制位，第三第四位是rgb亮度调节
+  60   1          //     rgb_open = config & 0x02;
+  61   1          //     rgb_brightness = (config >> 2) & 0x03;
+  62   1          // }
+  63   1          page_flag = PAGE_FLAG_CLOCK_TIME;
+  64   1          time_start();
+  65   1          while (1) {
+  66   2              if ((hal_systick_get() - rgb_wait_count) >= 5) {
+  67   3                  // run rgb update
+  68   3                  rgb_frame_update((u8)map(rgb_brightness, 0, 3, 0, 255));
+  69   3                  rgb_wait_count = hal_systick_get();
+  70   3              }
+  71   2              if ((hal_systick_get() - set_wait_count) >= 500) {
+  72   3                  // update setting page content
+  73   3                  if (page_flag == PAGE_FLAG_MENU) {
+  74   4                      page_menu();
+  75   4                  }
+  76   3                  set_wait_count = hal_systick_get();
+  77   3              }
+  78   2          }
+  79   1      }
+  80          
+  81          void page_menu() {
+  82   1          memset(buffer, 0, sizeof(buffer));
+  83   1          if (page_menu_flag == PAGE_MENU_FLAG_RGB_BLK) {
+  84   2          } else if (page_menu_flag == PAGE_MENU_FLAG_RGB_OPEN) {
+  85   2          } else if (page_menu_flag == PAGE_MENU_FLAG_SET_CLOCK) {
+  86   2          }
+  87   1      }
+  88          
+  89          void page_menu_click_handle(u8 key) {
+  90   1          if (page_flag == PAGE_FLAG_MENU) {
+  91   2          }
+  92   1      }
+*** WARNING C280 IN LINE 89 OF src\main.c: 'key': unreferenced local variable
+  93          
+  94          /**
+  95           * 按键中断触发
+  96           */
+  97          void user_key_isr(void) interrupt 13 {  // 借用13号 原中断号40
+  98   1          u8 intf = P3INTF;
+  99   1          u8 key_flag;
+ 100   1          if (intf) {
+ 101   2              P3INTF = 0;
+ 102   2              // 单点逻辑判断
+ 103   2              if (intf & 0x08) {
+ 104   3                  key_flag = KEY_FLAG_LP;
+ 105   3              } else if (intf & 0x10) {
+ 106   3                  key_flag = KEY_FLAG_LS;
+ 107   3              } else if (intf & 0x20) {
+ 108   3                  key_flag = KEY_FLAG_M;
+ 109   3              } else if (intf & 0x40) {
+ 110   3                  key_flag = KEY_FLAG_S;
+ 111   3              }
+ 112   2              page_menu_click_handle(key_flag);
+ 113   2          }
+ 114   1      }
+ 115          
+C51 COMPILER V9.60.7.0   MAIN                                                              11/06/2023 10:23:47 PAGE 3   
 
- 116   1          if (intf) {
- 117   2              P3INTF = 0;
- 118   2              // 单点逻辑判断
- 119   2              if (intf & 0x08) {
- 120   3                  key_flag = KEY_FLAG_LP;
- 121   3              } else if (intf & 0x10) {
- 122   3                  key_flag = KEY_FLAG_LS;
- 123   3              } else if (intf & 0x20) {
- 124   3                  key_flag = KEY_FLAG_M;
- 125   3              } else if (intf & 0x40) {
- 126   3                  key_flag = KEY_FLAG_S;
- 127   3              }
- 128   2              page_menu_click_handle(key_flag);
- 129   2          }
- 130   1      }
+ 116          void time_start() {
+ 117   1          // 2毫秒@22.1184MHz
+ 118   1          time_isr_count = 0;
+ 119   1          AUXR |= 0x04;  // 定时器时钟1T模式
+ 120   1          T2L = 0x33;    // 设置定时初始值
+ 121   1          T2H = 0x53;    // 设置定时初始值
+ 122   1          AUXR |= 0x10;  // 定时器2开始计时
+ 123   1          IE2 |= 0x04;   // 使能定时器2中断
+ 124   1      }
+ 125          void time_cancel() {
+ 126   1          AUXR &= 0xef;  // 关闭定时器2使能
+ 127   1      }
+ 128          
+ 129          void time_isr(void) interrupt 12 {
+ 130   1          time_isr_count++;
+ 131   1          if (time_isr_count >= 250) {
+ 132   2              // 500ms
+ 133   2              rx8025_time_get(&timeinfo);
+ 134   2              memset(buffer, 0, sizeof(buffer));
+ 135   2              if (page_flag == PAGE_FLAG_CLOCK_TIME) {
+ 136   3                  colon_flag = !colon_flag;
+ 137   3                  formart_time(&timeinfo, &buffer);
+ 138   3              } else if (page_flag == PAGE_FLAG_CLOCK_DATE) {
+ 139   3                  colon_flag = 0;
+ 140   3                  formart_date(&timeinfo, &buffer);
+ 141   3              }
+ 142   2              vfd_gui_set_text(buffer, colon_flag);
+ 143   2              time_isr_count = 0;
+ 144   2          }
+ 145   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    400    ----
-   CONSTANT SIZE    =     18    ----
+   CODE SIZE        =    530    ----
+   CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =     14       1
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =      9    ----
+   DATA SIZE        =     19    ----
    IDATA SIZE       =   ----    ----
    BIT SIZE         =   ----    ----
 END OF MODULE INFORMATION.

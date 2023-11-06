@@ -1,10 +1,10 @@
-C51 COMPILER V9.60.7.0   PT6315                                                            11/06/2023 00:06:02 PAGE 1   
+C51 COMPILER V9.60.7.0   PT6315                                                            11/06/2023 10:23:47 PAGE 1   
 
 
 C51 COMPILER V9.60.7.0, COMPILATION OF MODULE PT6315
 OBJECT MODULE PLACED IN .\Objects\pt6315.obj
-COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE src\lib\SRC\pt6315.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDIR(.\src\lib\INC
-                    -) DEBUG OBJECTEXTEND PRINT(.\Listings\pt6315.lst) OBJECT(.\Objects\pt6315.obj)
+COMPILER INVOKED BY: D:\Embedded_drive\Keil_v5\C51\BIN\C51.EXE src\lib\SRC\pt6315.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDI
+                    -R(.\src\lib\INC) DEBUG OBJECTEXTEND PRINT(.\Listings\pt6315.lst) OBJECT(.\Objects\pt6315.obj)
 
 line level    source
 
@@ -62,7 +62,7 @@ line level    source
   52           * 1XXX £º 12Î»£¬ 16¶Î
   53           */
   54          void setDisplayMode(uint8_t digit) {
-C51 COMPILER V9.60.7.0   PT6315                                                            11/06/2023 00:06:02 PAGE 2   
+C51 COMPILER V9.60.7.0   PT6315                                                            11/06/2023 10:23:47 PAGE 2   
 
   55   1          STB_1;
   56   1          delay_us(10);

@@ -1,10 +1,10 @@
-C51 COMPILER V9.60.7.0   GUI                                                               11/06/2023 00:06:02 PAGE 1   
+C51 COMPILER V9.60.7.0   GUI                                                               11/06/2023 10:23:47 PAGE 1   
 
 
 C51 COMPILER V9.60.7.0, COMPILATION OF MODULE GUI
 OBJECT MODULE PLACED IN .\Objects\gui.obj
-COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE src\lib\SRC\gui.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDIR(.\src\lib\INC) D
-                    -EBUG OBJECTEXTEND PRINT(.\Listings\gui.lst) OBJECT(.\Objects\gui.obj)
+COMPILER INVOKED BY: D:\Embedded_drive\Keil_v5\C51\BIN\C51.EXE src\lib\SRC\gui.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDIR(.
+                    -\src\lib\INC) DEBUG OBJECTEXTEND PRINT(.\Listings\gui.lst) OBJECT(.\Objects\gui.obj)
 
 line level    source
 
@@ -62,7 +62,7 @@ line level    source
   52   1          PWMA_CCR2 = PWM_CCR;  // 设置占空比时间
   53   1          PWMA_ARR = PWM_ARR;   // 设置周期时间
   54   1          PWMA_ENO = 0x04;      // 使能PWM2P端口输出
-C51 COMPILER V9.60.7.0   GUI                                                               11/06/2023 00:06:02 PAGE 2   
+C51 COMPILER V9.60.7.0   GUI                                                               11/06/2023 10:23:47 PAGE 2   
 
   55   1          PWMA_BKR = 0x80;      // 使能主输出
   56   1          PWMA_CR1 |= 0x81;     // 开始计时
@@ -126,7 +126,7 @@ line level    source
  113   3              }
  114   2          }
  115   1          // if (colon) {
-C51 COMPILER V9.60.7.0   GUI                                                               11/06/2023 00:06:02 PAGE 3   
+C51 COMPILER V9.60.7.0   GUI                                                               11/06/2023 10:23:47 PAGE 3   
 
  116   1          //     send_buf[5] |= 0x10;
  117   1          //     send_buf[11] |= 0x10;
@@ -158,7 +158,7 @@ line level    source
  142          
  143          u32* gui_get_font(char c) {
  144   1          if (c == ' ') {
- 145   2              return 0x00;
+ 145   2              return 0;
  146   2          }
  147   1          if (c >= 48 && c <= 58) {
  148   2              return &fonts[map(c, 48, 58, 0, 10)];

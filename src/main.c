@@ -3,9 +3,9 @@
  * @Blog: saisaiwa.com
  * @Author: ccy
  * @Date: 2023-11-02 11:19:34
- * @LastEditTime: 2023-11-03 17:06:25
+ * @LastEditTime: 2023-11-06 10:15:11
  */
-#include "eeprom.h"
+// #include "eeprom.h"
 #include "gui.h"
 #include "rx8025.h"
 #include "ws2812b.h"
@@ -34,8 +34,13 @@ rx8025_timeinfo timeinfo;
 u8 data buffer[9];    // 显示缓存
 bool colon_flag = 0;  // 冒号显示状态
 
+u16 data time_isr_count;
+u32 data rgb_wait_count;
+u32 data set_wait_count;
+
 void page_menu();
-void page_main();
+void time_start();
+void time_cancel();
 
 void main() {
     P_SW2 |= 0x80;  // 使能EAXFR寄存器 XFR
@@ -45,7 +50,6 @@ void main() {
     rx8025t_init();
     vfd_gui_init();
     vfd_gui_set_blk_level(vfd_brightness);
-    rgb_timer_stop();
     // config = ee_read(STORE_ADDR);
     // // 规则： 8bit 最高位和最低位如果不是1则需要清数据
     // if ((config & 0x81) >= 1) {
@@ -56,41 +60,22 @@ void main() {
     //     rgb_open = config & 0x02;
     //     rgb_brightness = (config >> 2) & 0x03;
     // }
-    rgb_timer_set_brightness((u8)map(rgb_brightness, 0, 3, 0, 255));
-    rgb_timer_start();
     page_flag = PAGE_FLAG_CLOCK_TIME;
-
+    time_start();
     while (1) {
-        // static uint8_t arr[3], ci;
-        // arr[0] = 0x80;
-        // arr[1] = 0x00;
-        // arr[2] = 0x00;
-        // sendDigAndData(1, arr, 3);
-        // delay_ms(500);
-        if (page_flag == PAGE_FLAG_CLOCK_TIME ||
-            page_flag == PAGE_FLAG_CLOCK_DATE) {
-            page_main();
-        } else if (page_flag == PAGE_FLAG_MENU) {
-            page_menu();
+        if ((hal_systick_get() - rgb_wait_count) >= 5) {
+            // run rgb update
+            rgb_frame_update((u8)map(rgb_brightness, 0, 3, 0, 255));
+            rgb_wait_count = hal_systick_get();
+        }
+        if ((hal_systick_get() - set_wait_count) >= 500) {
+            // update setting page content
+            if (page_flag == PAGE_FLAG_MENU) {
+                page_menu();
+            }
+            set_wait_count = hal_systick_get();
         }
     }
-}
-
-void page_main() {
-    rx8025_time_get(&timeinfo);
-    memset(buffer, 0, sizeof(buffer));
-    if (page_flag == PAGE_FLAG_CLOCK_TIME) {
-        colon_flag = !colon_flag;
-        formart_time(&timeinfo, &buffer);
-    } else if (page_flag == PAGE_FLAG_CLOCK_DATE) {
-        colon_flag = 0;
-        formart_date(&timeinfo, &buffer);
-    }
-    vfd_gui_set_text(buffer, colon_flag);
-    delay_ms(500);
-    // hal_uart_send(buffer);
-    // hal_uart_send("\n");
-    printf("Time:%02bd-%02bd\n", timeinfo.min, timeinfo.sec);
 }
 
 void page_menu() {
@@ -99,7 +84,6 @@ void page_menu() {
     } else if (page_menu_flag == PAGE_MENU_FLAG_RGB_OPEN) {
     } else if (page_menu_flag == PAGE_MENU_FLAG_SET_CLOCK) {
     }
-    delay_ms(500);
 }
 
 void page_menu_click_handle(u8 key) {
@@ -126,5 +110,36 @@ void user_key_isr(void) interrupt 13 {  // 借用13号 原中断号40
             key_flag = KEY_FLAG_S;
         }
         page_menu_click_handle(key_flag);
+    }
+}
+
+void time_start() {
+    // 2毫秒@22.1184MHz
+    time_isr_count = 0;
+    AUXR |= 0x04;  // 定时器时钟1T模式
+    T2L = 0x33;    // 设置定时初始值
+    T2H = 0x53;    // 设置定时初始值
+    AUXR |= 0x10;  // 定时器2开始计时
+    IE2 |= 0x04;   // 使能定时器2中断
+}
+void time_cancel() {
+    AUXR &= 0xef;  // 关闭定时器2使能
+}
+
+void time_isr(void) interrupt 12 {
+    time_isr_count++;
+    if (time_isr_count >= 250) {
+        // 500ms
+        rx8025_time_get(&timeinfo);
+        memset(buffer, 0, sizeof(buffer));
+        if (page_flag == PAGE_FLAG_CLOCK_TIME) {
+            colon_flag = !colon_flag;
+            formart_time(&timeinfo, &buffer);
+        } else if (page_flag == PAGE_FLAG_CLOCK_DATE) {
+            colon_flag = 0;
+            formart_date(&timeinfo, &buffer);
+        }
+        vfd_gui_set_text(buffer, colon_flag);
+        time_isr_count = 0;
     }
 }

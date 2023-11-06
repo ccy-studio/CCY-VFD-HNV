@@ -142,7 +142,7 @@ long map(long x, long in_min, long in_max, long out_min, long out_max) {
 
 u32* gui_get_font(char c) {
     if (c == ' ') {
-        return 0x00;
+        return 0;
     }
     if (c >= 48 && c <= 58) {
         return &fonts[map(c, 48, 58, 0, 10)];

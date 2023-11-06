@@ -3,6 +3,8 @@
 ".\Objects\pt6315.obj",
 ".\Objects\rx8025.obj",
 ".\Objects\sys.obj",
-".\Objects\ws2812b.obj" 
+".\Objects\ws2812b.obj",
+".\Objects\isr.obj",
+".\Objects\eeprom.obj" 
 TO ".\Objects\Project" 
 PRINT(".\Listings\Project.m51") RAMSIZE(256) 

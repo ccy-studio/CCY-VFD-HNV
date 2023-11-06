@@ -3,7 +3,7 @@
  * @Blog: saisaiwa.com
  * @Author: ccy
  * @Date: 2023-11-02 15:21:56
- * @LastEditTime: 2023-11-02 17:23:23
+ * @LastEditTime: 2023-11-06 10:14:02
  */
 #include "ws2812b.h"
 
@@ -113,37 +113,6 @@ void rgb_frame_update(u8 brightness_val) {
     rgb_set_color(1, rgb.r, rgb.g, rgb.b);
     hsv.h += 1;
     rgb_update(brightness_val);
-}
-
-/**
- * -------------------------------------------------------------------------------------------------
- * RGB 定时器中断刷新程序
- * -------------------------------------------------------------------------------------------------
- */
-u8 _timer_count;
-u8 brightness_timer = 255;
-void rgb_timer_set_brightness(u8 brightness) {
-    brightness_timer = brightness;
-}
-
-void rgb_timer_start() {
-   AUXR &= 0xFB;			//定时器时钟12T模式
-	T2L = 0x00;				//设置定时初始值
-	T2H = 0x70;				//设置定时初始值
-	AUXR |= 0x10;			//定时器2开始计时
-	IE2 |= 0x04;			//使能定时器2中断
-}
-void rgb_timer_stop() {
-    AUXR &= 0xef;
-}
-
-void ws2812b_timer_isr() interrupt 12 {
-    // _timer_count++;
-    // if (_timer_count >= 20) {
-    //     rgb_frame_update(brightness_timer);
-    //     _timer_count = 0;
-    // }
-    rgb_frame_update(brightness_timer);
 }
 
 /**
