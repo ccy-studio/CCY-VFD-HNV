@@ -232,7 +232,7 @@ void rx8025_time_get(rx8025_timeinfo* timeinfo) {
 }
 
 void formart_time(rx8025_timeinfo* timeinfo, char* buf) {
-    sprintf(buf, " %02bd%02bd%02bd%02bd", timeinfo->week, timeinfo->hour,
+    sprintf(buf, "W-%bd%02bd%02bd%02bd", timeinfo->week, timeinfo->hour,
             timeinfo->min, timeinfo->sec);
 }
 

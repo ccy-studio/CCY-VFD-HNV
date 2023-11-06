@@ -7,8 +7,7 @@
 #define VFD_DIG_LEN 9
 
 #define PWM_ARR 1000  // 重载值
-#define PWM_CCR 200   // 比较值
-
+#define PWM_CCR 150   // 比较值
 
 /**
  * 初始化
@@ -35,7 +34,7 @@ void vfd_gui_set_one_text(size_t index, char oneChar);
  * (自动清空覆盖显示，方便每次不用调用clear防止闪屏出现)
  * @param colon 是否显示冒号
  */
-u8 vfd_gui_set_text(const char* string, const u8 colon);
+void vfd_gui_set_text(const char* string, const u8 colon,const u8 left_first_conlon);
 
 /**
  * 要点亮的ICON图标，宏定义传参

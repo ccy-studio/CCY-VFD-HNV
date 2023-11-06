@@ -1,8 +1,8 @@
 #include "gui.h"
 
 u8 lightOff = 1;    // 背光开关
-u8 lightLevel = 5;  // 亮度级别
-static u8 xdata send_buf[24] = {0};
+u8 lightLevel = 7;  // 亮度级别
+static u8 data send_buf[3 * VFD_DIG_LEN] = {0};
 const u32 xdata fonts[37] = {
     0x333300,  // ASCII:0,ASCII_N:48 index:0
     0x201000,  // ASCII:1,ASCII_N:49 index:1
@@ -79,7 +79,7 @@ void vfd_gui_stop() {
 
 void vfd_gui_clear() {
     memset(send_buf, 0x00, sizeof(send_buf));
-    sendDigAndData(0, send_buf, 24);
+    sendDigAndData(0, send_buf, sizeof(send_buf));
 }
 
 void vfd_gui_set_one_text(size_t index, char oneChar) {
@@ -99,7 +99,9 @@ void vfd_gui_set_icon(u32 buf) {
     sendDigAndData(0, arr, 3);
 }
 
-u8 vfd_gui_set_text(const char* string, const u8 colon) {
+void vfd_gui_set_text(const char* string,
+                      const u8 colon,
+                      const u8 left_first_conlon) {
     size_t str_len = strlen(string);
     size_t index = 0, i = 0;
     size_t len = str_len > VFD_DIG_LEN ? VFD_DIG_LEN : str_len;
@@ -112,12 +114,14 @@ u8 vfd_gui_set_text(const char* string, const u8 colon) {
             send_buf[index++] = *buf & 0xFF;
         }
     }
-    // if (colon) {
-    //     send_buf[5] |= 0x10;
-    //     send_buf[11] |= 0x10;
-    // }
-    sendDigAndData(0, send_buf, 24);
-    return 1;
+    if (left_first_conlon) {
+        send_buf[7] |= 0x40;
+    }
+    if (colon) {
+        send_buf[13] |= 0x40;
+        send_buf[19] |= 0x40;
+    }
+    sendDigAndData(0, send_buf, sizeof(send_buf));
 }
 
 void vfd_gui_set_bck(u8 onOff) {

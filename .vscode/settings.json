@@ -1,12 +1,9 @@
 {
-    "files.associations": {
-        "gui.h": "c",
-        "pt6315.h": "c",
-        "sys.h": "c",
-        "stc8h.h": "c",
-        "STC8H.H": "cpp",
-        "eeprom.h": "c"
-    },
     "files.autoGuessEncoding": true,
-    "files.encoding": "gb2312"
+    "files.encoding": "gb2312",
+    "files.associations": {
+        "ws2812b.h": "c",
+        "rx8025.h": "c",
+        "gui.h": "c"
+    }
 }

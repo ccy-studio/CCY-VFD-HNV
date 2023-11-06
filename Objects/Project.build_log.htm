@@ -5,11 +5,11 @@
 <h2>Tool Versions:</h2>
 IDE-Version: ¦ÌVision V5.25.3.0
 Copyright (C) 2018 ARM Ltd and ARM Germany GmbH. All rights reserved.
-License Information: YUC 835033913@qq.com, Dev, LIC=76PLD-89LV5-KZVW6-DJKJS-75GI5-EFTTY
+License Information: YUc CCY, Dev, LIC=ZBD7S-LCP7Q-JUA4W-Q47GE-03QTJ-MCM6S
  
 Tool Versions:
 Toolchain:       PK51 Prof. Developers Kit  Version: 9.60.7.0
-Toolchain Path:  D:\Embedded_drive\Keil_v5\C51\BIN
+Toolchain Path:  C:\Keil_v5\C51\BIN
 C Compiler:      C51.exe V9.60.7.0
 Assembler:       A51.exe V8.2.7.0
 Linker/Locator:  BL51.exe V6.22.4.0
@@ -18,25 +18,27 @@ Hex Converter:   OH51.exe V2.7.0.0
 CPU DLL:         S8051.DLL V3.125.1.0
 Dialog DLL:      DP51.DLL V2.69.0.0 
 <h2>Project:</h2>
-D:\Embedded\C51_WorkSpace\CCY-VFD-HNV\Project.uvproj
+Y:\Workspace\CCY-VFD-HNV\Project.uvproj
 Project File Date:  11/06/2023
 
 <h2>Output:</h2>
 Rebuild target 'Target 1'
 compiling main.c...
-src\main.c(89): warning C280: 'key': unreferenced local variable
+src\main.c(116): warning C280: 'key': unreferenced local variable
 compiling gui.c...
 src\lib\SRC\gui.c(85): warning C280: 'index': unreferenced local variable
-src\lib\SRC\gui.c(102): warning C280: 'colon': unreferenced local variable
 compiling pt6315.c...
 compiling rx8025.c...
 compiling sys.c...
 compiling ws2812b.c...
 assembling isr.asm...
+src\isr.asm(3): warning A41: MISSING 'END' STATEMENT
 compiling eeprom.c...
 linking...
 *** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
-    SEGMENT: ?PR?TIME_CANCEL?MAIN
+    SEGMENT: ?PR?PAGE_MENU?MAIN
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_PAGE_MENU_CLICK_HANDLE?MAIN
 *** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
     SEGMENT: ?PR?VFD_GUI_STOP?GUI
 *** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
@@ -48,38 +50,22 @@ linking...
 *** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
     SEGMENT: ?PR?RX8025_RESET?RX8025
 *** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
-    SEGMENT: ?PR?_RX8025_SET_TIME?RX8025
-*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
     SEGMENT: ?PR?_HAL_UART_SEND?SYS
 *** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
-    SEGMENT: ?PR?_DELAY_MS?SYS
+    SEGMENT: ?PR?HAL_SYSTICK_GET?SYS
 *** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
     SEGMENT: ?PR?RGB_CLEAR?WS2812B
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_RGB_FRAME_UPDATE?WS2812B
 *** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
     SEGMENT: ?PR?_EE_READ?EEPROM
 *** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
     SEGMENT: ?PR?_EE_ERASE?EEPROM
 *** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
     SEGMENT: ?PR?_EE_WRITE?EEPROM
-*** WARNING L15: MULTIPLE CALL TO SEGMENT
-    SEGMENT: ?PR?_DELAY_US?SYS
-    CALLER1: ?PR?TIME_ISR?MAIN
-    CALLER2: ?C_C51STARTUP
-*** WARNING L15: MULTIPLE CALL TO SEGMENT
-    SEGMENT: ?PR?_WRITEDATA?PT6315
-    CALLER1: ?PR?TIME_ISR?MAIN
-    CALLER2: ?C_C51STARTUP
-*** WARNING L15: MULTIPLE CALL TO SEGMENT
-    SEGMENT: ?PR?_SENDDIGANDDATA?PT6315
-    CALLER1: ?PR?TIME_ISR?MAIN
-    CALLER2: ?C_C51STARTUP
-*** WARNING L15: MULTIPLE CALL TO SEGMENT
-    SEGMENT: ?PR?_MAP?GUI
-    CALLER1: ?PR?TIME_ISR?MAIN
-    CALLER2: ?C_C51STARTUP
-Program Size: data=47.3 xdata=322 code=7449
+Program Size: data=74.3 xdata=274 code=7366
 creating hex file from ".\Objects\Project"...
-".\Objects\Project" - 0 Error(s), 20 Warning(s).
+".\Objects\Project" - 0 Error(s), 17 Warning(s).
 Build Time Elapsed:  00:00:01
 </pre>
 </body>

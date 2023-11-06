@@ -1,10 +1,10 @@
-C51 COMPILER V9.60.7.0   WS2812B                                                           11/06/2023 10:23:47 PAGE 1   
+C51 COMPILER V9.60.7.0   WS2812B                                                           11/06/2023 23:38:38 PAGE 1   
 
 
 C51 COMPILER V9.60.7.0, COMPILATION OF MODULE WS2812B
 OBJECT MODULE PLACED IN .\Objects\ws2812b.obj
-COMPILER INVOKED BY: D:\Embedded_drive\Keil_v5\C51\BIN\C51.EXE src\lib\SRC\ws2812b.c LARGE OPTIMIZE(8,SPEED) BROWSE INCD
-                    -IR(.\src\lib\INC) DEBUG OBJECTEXTEND PRINT(.\Listings\ws2812b.lst) OBJECT(.\Objects\ws2812b.obj)
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE src\lib\SRC\ws2812b.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDIR(.\src\lib\IN
+                    -C) DEBUG OBJECTEXTEND PRINT(.\Listings\ws2812b.lst) OBJECT(.\Objects\ws2812b.obj)
 
 line level    source
 
@@ -62,7 +62,7 @@ line level    source
   52   1          SPDAT = dat;
   53   1      }
   54          
-C51 COMPILER V9.60.7.0   WS2812B                                                           11/06/2023 10:23:47 PAGE 2   
+C51 COMPILER V9.60.7.0   WS2812B                                                           11/06/2023 23:38:38 PAGE 2   
 
   55          void send_spi() {
   56   1          u16 len = RGB_LED_COUNT * 3;
@@ -126,7 +126,7 @@ line level    source
  114   1          hsv.h += 1;
  115   1          rgb_update(brightness_val);
  116   1      }
-C51 COMPILER V9.60.7.0   WS2812B                                                           11/06/2023 10:23:47 PAGE 3   
+C51 COMPILER V9.60.7.0   WS2812B                                                           11/06/2023 23:38:38 PAGE 3   
 
  117          
  118          /**
@@ -190,7 +190,7 @@ line level    source
  176   1          uint8_t offset8 = offset << 3;
  177   1          uint8_t third = scale8(offset8, (256 / 3));  // max = 85
  178   1      
-C51 COMPILER V9.60.7.0   WS2812B                                                           11/06/2023 10:23:47 PAGE 4   
+C51 COMPILER V9.60.7.0   WS2812B                                                           11/06/2023 23:38:38 PAGE 4   
 
  179   1          uint8_t r, g, b;
  180   1      
@@ -254,7 +254,7 @@ line level    source
  238   2              // 1XX
  239   2              if (!(hue & 0x40)) {
  240   3                  // 10X
-C51 COMPILER V9.60.7.0   WS2812B                                                           11/06/2023 10:23:47 PAGE 5   
+C51 COMPILER V9.60.7.0   WS2812B                                                           11/06/2023 23:38:38 PAGE 5   
 
  241   3                  if (!(hue & 0x20)) {
  242   4                      uint8_t twothirds =
@@ -318,7 +318,7 @@ line level    source
  300   3                  // nscale8x3_video( r, g, b, sat);
  301   3                  r = scale8(r, satscale);
  302   3                  g = scale8(g, satscale);
-C51 COMPILER V9.60.7.0   WS2812B                                                           11/06/2023 10:23:47 PAGE 6   
+C51 COMPILER V9.60.7.0   WS2812B                                                           11/06/2023 23:38:38 PAGE 6   
 
  303   3                  b = scale8(b, satscale);
  304   3      
@@ -382,7 +382,7 @@ line level    source
  362              // values and then divide the resulting product by 256.
  363              // So which is faster?
  364              //   ((ramp * 4) * othervalue) / 256
-C51 COMPILER V9.60.7.0   WS2812B                                                           11/06/2023 10:23:47 PAGE 7   
+C51 COMPILER V9.60.7.0   WS2812B                                                           11/06/2023 23:38:38 PAGE 7   
 
  365              // or
  366              //   ((ramp    ) * othervalue) /  64
@@ -446,7 +446,7 @@ line level    source
  424          
  425              // Scale 'heat' down from 0-255 to 0-191,
  426              // which can then be easily divided into three
-C51 COMPILER V9.60.7.0   WS2812B                                                           11/06/2023 10:23:47 PAGE 8   
+C51 COMPILER V9.60.7.0   WS2812B                                                           11/06/2023 23:38:38 PAGE 8   
 
  427              // equal 'thirds' of 64 units each.
  428              uint8_t t192 = scale8_video(temperature, 191);

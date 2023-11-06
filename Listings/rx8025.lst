@@ -1,10 +1,10 @@
-C51 COMPILER V9.60.7.0   RX8025                                                            11/06/2023 10:23:47 PAGE 1   
+C51 COMPILER V9.60.7.0   RX8025                                                            11/06/2023 23:38:37 PAGE 1   
 
 
 C51 COMPILER V9.60.7.0, COMPILATION OF MODULE RX8025
 OBJECT MODULE PLACED IN .\Objects\rx8025.obj
-COMPILER INVOKED BY: D:\Embedded_drive\Keil_v5\C51\BIN\C51.EXE src\lib\SRC\rx8025.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDI
-                    -R(.\src\lib\INC) DEBUG OBJECTEXTEND PRINT(.\Listings\rx8025.lst) OBJECT(.\Objects\rx8025.obj)
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE src\lib\SRC\rx8025.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDIR(.\src\lib\INC
+                    -) DEBUG OBJECTEXTEND PRINT(.\Listings\rx8025.lst) OBJECT(.\Objects\rx8025.obj)
 
 line level    source
 
@@ -62,7 +62,7 @@ line level    source
   52   1          i2c_sda_out();
   53   1          SCL_0;
   54   1          SDA_0;
-C51 COMPILER V9.60.7.0   RX8025                                                            11/06/2023 10:23:47 PAGE 2   
+C51 COMPILER V9.60.7.0   RX8025                                                            11/06/2023 23:38:37 PAGE 2   
 
   55   1          SCL_1;
   56   1          delay_us(4);
@@ -126,7 +126,7 @@ line level    source
  114   3              } else {
  115   3                  SDA_0;
  116   3              }
-C51 COMPILER V9.60.7.0   RX8025                                                            11/06/2023 10:23:47 PAGE 3   
+C51 COMPILER V9.60.7.0   RX8025                                                            11/06/2023 23:38:37 PAGE 3   
 
  117   2              delay_us(4);
  118   2              SCL_1;
@@ -190,7 +190,7 @@ line level    source
  176   2          }
  177   1          i2c_stop();
  178   1      }
-C51 COMPILER V9.60.7.0   RX8025                                                            11/06/2023 10:23:47 PAGE 4   
+C51 COMPILER V9.60.7.0   RX8025                                                            11/06/2023 23:38:37 PAGE 4   
 
  179          
  180          void rx8025t_init() {
@@ -248,13 +248,13 @@ line level    source
  232   1      }
  233          
  234          void formart_time(rx8025_timeinfo* timeinfo, char* buf) {
- 235   1          sprintf(buf, " %02bd%02bd%02bd%02bd", timeinfo->week, timeinfo->hour,
+ 235   1          sprintf(buf, "W-%bd%02bd%02bd%02bd", timeinfo->week, timeinfo->hour,
  236   1                  timeinfo->min, timeinfo->sec);
  237   1      }
  238          
  239          /**
  240           *  YYMMdd
-C51 COMPILER V9.60.7.0   RX8025                                                            11/06/2023 10:23:47 PAGE 5   
+C51 COMPILER V9.60.7.0   RX8025                                                            11/06/2023 23:38:37 PAGE 5   
 
  241           */
  242          void formart_date(rx8025_timeinfo* timeinfo, char* buf) {
@@ -265,7 +265,7 @@ line level    source
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
    CODE SIZE        =   1244    ----
-   CONSTANT SIZE    =     38    ----
+   CONSTANT SIZE    =     37    ----
    XDATA SIZE       =   ----      57
    PDATA SIZE       =   ----    ----
    DATA SIZE        =   ----    ----

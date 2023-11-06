@@ -80,34 +80,29 @@ void hal_init_systick() {
     TR0 = 1;       // 定时器0开始计时
     ET0 = 1;       // 使能定时器0中断
 }
+
 u32 hal_systick_get() {
     return _systick_ccr;
 }
 
 void timer0_Isr(void) interrupt 1 {
     _systick_ccr++;
+    TF0 = 0;  // 清除TF0标志
 }
 
 void hal_init_all_gpio(void) {
     P3M0 = 0x00;
-    P3M1 = 0x00;
+    P3M1 = 0x78;
     P1M0 = 0x00;
     P1M1 = 0x00;
     // I2C内部上拉
     P1PU = 0xE0;
-    // Key按键高阻输入+内部上拉
-    P3M0 |= 0x78;
-    P3M1 |= 0x78;
+    // Key内部上拉
     P3PU = 0x78;
     // RGB 配置推挽输出+高速模式
     P1M0 |= 0x08;
-    // P1SR &= 0xf7;
+    P1SR &= 0xf7;
 
-    // 配置KEY中断为下降沿中断
-    P3IM0 = 0x00;
-    P3IM1 = 0x00;
-    // 使能中断
-    P3INTE = 0x78;
     EA = 1;  // 开总中断
 }
 
