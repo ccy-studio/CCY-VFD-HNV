@@ -55,6 +55,7 @@ u32 data last_key_press_time;
 u32 data rgb_wait_count;
 
 extern u32 data _systick_ccr;
+
 bool interval_check(u32 select, u32 t);
 void page_home();
 void menu_display_refresh();

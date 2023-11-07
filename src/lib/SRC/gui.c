@@ -87,7 +87,7 @@ void vfd_gui_set_icon(u32 buf) {
     arr[0] = (buf >> 16) & 0xFF;
     arr[1] = (buf >> 8) & 0xFF;
     arr[2] = buf & 0xFF;
-    sendDigAndData(0, arr, 3);
+    sendDigAndData(0x1b, arr, 3);
 }
 
 void vfd_gui_set_text(const char* string,
@@ -149,7 +149,21 @@ u32* gui_get_font(char c) {
  * acg¶¯»­
  */
 void vfd_gui_acg_update() {
-    static u8 acf_i = 0;
+    static u8 acf_i = 9, seg = 0;
+    // ICONÎ»ÓÐ6¶Î
+    if (acf_i == 9) {
+        vfd_gui_set_icon(1 << seg);
+        seg++;
+        if (seg > 6) {
+            acf_i = 0;
+            seg = 0;
+        }
+    } else {
+        // seg 15\16 icon
+        u8 bi = acf_i * 3 - 2;
+        sendDigAndData(bi, send_buf[bi] | 0xC0, 1);
+        acf_i++;
+    }
 }
 
 /**
