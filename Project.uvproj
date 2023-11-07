@@ -416,6 +416,11 @@
               <FileType>1</FileType>
               <FilePath>.\src\lib\SRC\eeprom.c</FilePath>
             </File>
+            <File>
+              <FileName>button.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\lib\SRC\button.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

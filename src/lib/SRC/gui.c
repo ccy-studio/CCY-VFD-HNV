@@ -1,7 +1,7 @@
 #include "gui.h"
 
-u8 lightOff = 1;    // 背光开关
-u8 lightLevel = 7;  // 亮度级别
+const u8 lightOff = 1;  // 背光开关
+u8 lightLevel = 7;      // 亮度级别
 static u8 data send_buf[3 * VFD_DIG_LEN] = {0};
 const u32 xdata fonts[37] = {
     0x333300,  // ASCII:0,ASCII_N:48 index:0
@@ -82,15 +82,6 @@ void vfd_gui_clear() {
     sendDigAndData(0, send_buf, sizeof(send_buf));
 }
 
-void vfd_gui_set_one_text(size_t index, char oneChar) {
-    uint8_t arr[3];
-    u32* buf = gui_get_font(oneChar);
-    arr[0] = (*buf >> 16) & 0xFF;
-    arr[1] = (*buf >> 8) & 0xFF;
-    arr[2] = *buf & 0xFF;
-    sendDigAndData(0, arr, 3);
-}
-
 void vfd_gui_set_icon(u32 buf) {
     uint8_t arr[3];
     arr[0] = (buf >> 16) & 0xFF;
@@ -124,11 +115,6 @@ void vfd_gui_set_text(const char* string,
     sendDigAndData(0, send_buf, sizeof(send_buf));
 }
 
-void vfd_gui_set_bck(u8 onOff) {
-    lightOff = onOff;
-    ptSetDisplayLight(lightOff, lightLevel);
-}
-
 /**
  * 亮度调节 1~7
  */
@@ -156,5 +142,25 @@ u32* gui_get_font(char c) {
         return gui_get_font(c - 32);
     } else {
         return 0;
+    }
+}
+
+/**
+ * acg动画
+ */
+void vfd_gui_acg_update() {
+    static u8 acf_i = 0;
+}
+
+/**
+ * 屏幕保护程序
+ */
+void vfd_gui_display_protect_exec() {
+    u8 i, buf[10];
+    for (i = 1; i <= 10; i++) {
+        u32 rn = hal_systick_get() + 123456789UL * i;
+        sprintf(buf, "%ld", rn);
+        vfd_gui_set_text(buf, 0, 0);
+        delay_ms(50);
     }
 }
