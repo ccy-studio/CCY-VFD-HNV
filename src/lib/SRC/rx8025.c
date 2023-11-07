@@ -17,21 +17,18 @@
 #define SCL_0 I2C_SCL = 0
 
 void i2c_sda_out() {
-    P1M1 |= 0x40;  // ���ÿ�©���
-    P1M0 |= 0x40;  // ���ÿ�©���
+    P1M1 |= 0x40;  
+    P1M0 |= 0x40; 
 }
 
 void i2c_sda_in() {
-    // ���ø�������
     P1M1 |= 0x40;
     P1M0 &= 0xbf;
 }
 
 void i2c_init() {
-    // SCL��©���
     P1M1 |= 0x20;
     P1M0 |= 0x20;
-    // 8025INT��������
     P1M1 |= 0x80;
     P1M0 &= 0x7F;
 
@@ -181,14 +178,6 @@ void rx8025t_init() {
     i2c_init();
 }
 
-void rx8025_reset() {
-    u8 command[2];
-    i2c_init();
-    command[0] = 0x00;
-    command[1] = 0x40;
-    rx8025_write(0xe0, command, 2);
-}
-
 u8 toBcd(u8 val) {
     return ((val / 10) << 4) | (val % 10);
 }
@@ -232,7 +221,7 @@ void rx8025_time_get(rx8025_timeinfo* timeinfo) {
 }
 
 void formart_time(rx8025_timeinfo* timeinfo, char* buf) {
-    sprintf(buf, "W-%bd%02bd%02bd%02bd", timeinfo->week, timeinfo->hour,
+    sprintf(buf, "W%bd% 02bd%02bd%02bd", timeinfo->week, timeinfo->hour,
             timeinfo->min, timeinfo->sec);
 }
 
@@ -240,6 +229,6 @@ void formart_time(rx8025_timeinfo* timeinfo, char* buf) {
  *  YYMMdd
  */
 void formart_date(rx8025_timeinfo* timeinfo, char* buf) {
-    sprintf(buf, "20%bd%02bd%02bd", timeinfo->year, timeinfo->month,
+    sprintf(buf, "20%bd %02bd%02bd", timeinfo->year, timeinfo->month,
             timeinfo->day);
 }

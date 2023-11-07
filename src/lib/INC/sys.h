@@ -14,8 +14,7 @@
 #include "STDLIB.H"
 #include "STRING.H"
 
-// ����������������������ע�͵�
-#define DEV_PLATFROM
+// #define DEV_PLATFROM
 
 // #define SYS_FOSC 22118400UL  // 22.1184Mhz
 
@@ -36,11 +35,9 @@ typedef uint8_t bool;
 #define P_STB P14
 #define P_CLK P10
 #define P_DIN P37
-#define RGB P13
 
 void hal_init_systick();
 u32 hal_systick_get();
-void hal_uart_send(char* str);
 void hal_init_uart(void);
 void hal_init_all_gpio(void);
 void delay_ms(u32 ms);

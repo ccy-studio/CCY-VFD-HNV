@@ -28,11 +28,6 @@ typedef struct {
 void rx8025t_init();
 
 /**
- * reset
- */
-void rx8025_reset();
-
-/**
  * set timeinfo
  */
 void rx8025_set_time(u8 year,

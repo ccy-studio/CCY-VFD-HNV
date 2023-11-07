@@ -401,26 +401,6 @@
               <FileType>1</FileType>
               <FilePath>.\src\lib\SRC\sys.c</FilePath>
             </File>
-            <File>
-              <FileName>ws2812b.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\lib\SRC\ws2812b.c</FilePath>
-            </File>
-            <File>
-              <FileName>isr.asm</FileName>
-              <FileType>2</FileType>
-              <FilePath>.\src\isr.asm</FilePath>
-            </File>
-            <File>
-              <FileName>eeprom.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\lib\SRC\eeprom.c</FilePath>
-            </File>
-            <File>
-              <FileName>button.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\lib\SRC\button.c</FilePath>
-            </File>
           </Files>
         </Group>
       </Groups>

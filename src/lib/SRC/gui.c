@@ -1,9 +1,8 @@
 #include "gui.h"
 
-const u8 lightOff = 1;  // 背光开关
-u8 lightLevel = 7;      // 亮度级别
+u8 lightLevel = 7;  // 亮度级别
 static u8 data send_buf[3 * VFD_DIG_LEN] = {0};
-const u32 xdata fonts[37] = {
+const u32 xdata fonts[38] = {
     0x333300,  // ASCII:0,ASCII_N:48 index:0
     0x201000,  // ASCII:1,ASCII_N:49 index:1
     0xe12100,  // ASCII:2,ASCII_N:50 index:2
@@ -32,15 +31,16 @@ const u32 xdata fonts[37] = {
     0x233100,  // ASCII:O,ASCII_N:79 index:25
     0xe10100,  // ASCII:P,ASCII_N:80 index:26
     0x233900,  // ASCII:Q,ASCII_N:81 index:27
-    0xe10900,  // ASCII:R,ASCII_N:82 index:28
+    0xe30900,  // ASCII:R,ASCII_N:82 index:28
     0xc33000,  // ASCII:S,ASCII_N:83 index:29
     0x090400,  // ASCII:T,ASCII_N:84 index:30
-    0x223000,  // ASCII:U,ASCII_N:85 index:31
+    0x223100,  // ASCII:U,ASCII_N:85 index:31
     0x241800,  // ASCII:V,ASCII_N:86 index:32
     0x221b00,  // ASCII:W,ASCII_N:87 index:33
     0x140a00,  // ASCII:X,ASCII_N:88 index:34
     0x140400,  // ASCII:Y,ASCII_N:89 index:35
     0x112004,  // ASCII:Z,ASCII_N:90 index:36
+    0xc00000,  // ASCII:-,ASCII_N:45 index:37
 };
 
 u32* gui_get_font(char c);
@@ -83,10 +83,12 @@ void vfd_gui_clear() {
 }
 
 void vfd_gui_set_icon(u32 buf) {
-    uint8_t arr[3];
-    arr[0] = (buf >> 16) & 0xFF;
-    arr[1] = (buf >> 8) & 0xFF;
-    arr[2] = buf & 0xFF;
+    uint8_t arr[3] = {0};
+    if (buf) {
+        arr[0] = (buf >> 16) & 0xFF;
+        arr[1] = (buf >> 8) & 0xFF;
+        arr[2] = buf & 0xFF;
+    }
     sendDigAndData(0x1b, arr, 3);
 }
 
@@ -120,7 +122,7 @@ void vfd_gui_set_text(const char* string,
  */
 void vfd_gui_set_blk_level(size_t level) {
     lightLevel = level;
-    ptSetDisplayLight(lightOff, lightLevel);
+    ptSetDisplayLight(1, lightLevel);
 }
 
 long map(long x, long in_min, long in_max, long out_min, long out_max) {
@@ -133,6 +135,9 @@ long map(long x, long in_min, long in_max, long out_min, long out_max) {
 u32* gui_get_font(char c) {
     if (c == ' ') {
         return 0;
+    }
+    if (c == '-') {
+        return &fonts[37];
     }
     if (c >= 48 && c <= 58) {
         return &fonts[map(c, 48, 58, 0, 10)];
@@ -149,19 +154,33 @@ u32* gui_get_font(char c) {
  * acg动画
  */
 void vfd_gui_acg_update() {
-    static u8 acf_i = 9, seg = 0;
+    static u8 acf_i = 10, seg = 0;
     // ICON位有6段
-    if (acf_i == 9) {
-        vfd_gui_set_icon(1 << seg);
+    if (acf_i == 10) {
+        vfd_gui_set_icon(0x800000 >> seg);
         seg++;
-        if (seg > 6) {
+        if (seg == 3) {
+            vfd_gui_set_icon(0);
+            acf_i = 0;
+        }
+        if (seg > 8) {
+            vfd_gui_set_icon(0);
             acf_i = 0;
             seg = 0;
         }
     } else {
         // seg 15\16 icon
+        u8 arr[2];
         u8 bi = acf_i * 3 - 2;
-        sendDigAndData(bi, send_buf[bi] | 0xC0, 1);
+        u8 lbi = acf_i == 0 ? 0 : (acf_i - 1) * 3 - 2;
+        if (acf_i == 3 || acf_i == 5 || acf_i == 7) {
+            arr[1] = send_buf[bi] | 0x80;
+        } else {
+            arr[1] = send_buf[bi] | 0xC0;
+        }
+        // u8 arr[2];
+        // arr[0] = send_buf[bi - 1];
+        sendDigAndData(bi, &arr[1], 2);
         acf_i++;
     }
 }

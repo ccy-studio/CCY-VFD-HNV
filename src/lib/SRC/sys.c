@@ -47,17 +47,6 @@ void hal_uart_isr() interrupt 4 {
         }
     }
 }
-
-void hal_uart_send(char* str) {
-    while (*str) {
-        while (busy)
-            ;
-        busy = 1;
-        SBUF = *str;
-        str++;
-    }
-}
-
 char putchar(char ch) {
     while (busy)
         ;
@@ -67,7 +56,6 @@ char putchar(char ch) {
 }
 #else
 void hal_init_uart(void) {}
-void hal_uart_send(char* str) {}
 #endif
 
 void hal_init_systick() {
@@ -99,10 +87,6 @@ void hal_init_all_gpio(void) {
     P1PU = 0xE0;
     // Key内部上拉
     P3PU = 0x78;
-    // RGB 配置推挽输出+高速模式
-    P1M0 |= 0x08;
-    P1SR &= 0xf7;
-
     EA = 1;  // 开总中断
 }
 
