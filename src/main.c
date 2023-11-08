@@ -20,11 +20,15 @@
 #define PAGE_FLAG_CLOCK_DATE 0x02  // 日期显示页面
 #define PAGE_FLAG_SET_CLOCK 0x10   // 设置时间子页面
 
-#define SCREEN_SAVER_TIME 60000UL  // 屏幕保护程序间隔执行时间单位毫秒
+/**
+ * 屏幕保护程序间隔执行时间,单位毫秒默认2分钟一次
+ */
+#define SCREEN_SAVER_TIME 120000UL
 
-u8 vfd_brightness = 7;        // VFD亮度等级 1~7
-bool acg_open = true;         // vfd动画特效开关
-bool vfd_saver_open = false;  // vfd屏幕保护程序开关
+u8 vfd_brightness_level[3] = {1, 2, 7};  // VFD亮度等级
+u8 vfd_brightness = 2;                   // VFD亮度等级Level下标
+bool acg_open = true;                    // vfd动画特效开关
+bool vfd_saver_open = true;              // vfd屏幕保护程序开关
 
 u8 page_display_flag = PAGE_FLAG_CLOCK_TIME;  // 页面显示内容
 rx8025_timeinfo timeinfo;
@@ -42,7 +46,11 @@ u32 data page_wait_count;
 u32 data acg_wait_count;
 u32 data saver_wait_count;
 u32 data last_key_press_time;
-
+/**
+ * 按钮状态标记位[按下?1，松开?2]
+ */
+u8 data key1_press = 0;
+u8 data key2_press = 0;
 u8 data key3_press = 0;
 u8 data key3_press_count = 0;
 
@@ -51,7 +59,6 @@ extern u32 data _systick_ccr;
 bool interval_check(u32 select, u32 t);
 void page_home();
 void menu_display_refresh();
-void on_click_click_handle(u8 io);
 
 void main() {
     P_SW2 |= 0x80;  // 使能EAXFR寄存器 XFR
@@ -60,7 +67,7 @@ void main() {
     // hal_init_uart();
     rx8025t_init();
     vfd_gui_init();
-    vfd_gui_set_blk_level(vfd_brightness);
+
     // 开启按键扫描定时器
     AUXR |= 0x40;  // 定时器时钟1T模式
     TMOD &= 0x0F;  // 设置定时器模式
@@ -71,6 +78,8 @@ void main() {
     ET1 = 1;       // 使能定时器1中断
 
     while (1) {
+        // 动态亮度调整
+        vfd_gui_set_blk_level(vfd_brightness_level[vfd_brightness]);
         // 主页面内容筛选
         if (page_display_flag == PAGE_FLAG_CLOCK_TIME ||
             page_display_flag == PAGE_FLAG_CLOCK_DATE) {
@@ -84,6 +93,10 @@ void main() {
                 if (set_clock_action_flag) {
                     u8 max, min;
                     memset(set_prefix, 0x00, sizeof(set_prefix));
+                    if (set_clock_action_flag == 255) {
+                        memcpy(&set_timeinfo_cache, &timeinfo,
+                               sizeof(timeinfo));
+                    }
                     if (set_clock_action_flag == SC_M) {
                         set_clock_item++;
                         if (set_clock_item > 6) {
@@ -152,7 +165,7 @@ void main() {
             }
         }
 
-        // 时间设定
+        // 时间保存设定
         if (save_timeinfo_flag) {
             rx8025_set_time(set_timeinfo_cache.year, set_timeinfo_cache.month,
                             set_timeinfo_cache.day, 1, set_timeinfo_cache.hour,
@@ -200,25 +213,40 @@ void btn_scan_isr(void) interrupt 3 {
     last_key_press_time++;
     if (last_key_press_time >= 50) {
         last_key_press_time = 0;
-        // 触发
         if (!P33) {
-            if (page_display_flag != PAGE_FLAG_SET_CLOCK) {
-                page_display_flag = (page_display_flag == PAGE_FLAG_CLOCK_DATE
-                                         ? PAGE_FLAG_CLOCK_TIME
-                                         : PAGE_FLAG_CLOCK_DATE);
-            } else {
-                set_clock_action_flag = SC_L;
-            }
+            key1_press = 1;
+
         } else if (!P34) {
-            // 亮度调整
-            if (page_display_flag == PAGE_FLAG_SET_CLOCK) {
-                set_clock_action_flag = SC_P;
-            }
+            key2_press = 1;
+
         } else if (!P35) {
             key3_press = 1;
             key3_press_count++;
         }
     }
+    //---------------按键处理逻辑---------------------//
+    // Key1按键
+    if (P33 && key1_press) {
+        key1_press = 0;
+        if (page_display_flag != PAGE_FLAG_SET_CLOCK) {
+            page_display_flag = (page_display_flag == PAGE_FLAG_CLOCK_DATE
+                                     ? PAGE_FLAG_CLOCK_TIME
+                                     : PAGE_FLAG_CLOCK_DATE);
+        } else {
+            set_clock_action_flag = SC_L;
+        }
+    }
+    // Key2按键
+    if (P34 && key2_press) {
+        key2_press = 0;
+        if (page_display_flag == PAGE_FLAG_SET_CLOCK) {
+            set_clock_action_flag = SC_P;
+        } else {
+            // 亮度调整
+            vfd_brightness = (vfd_brightness + 1) % 3;
+        }
+    }
+    // Key3按键
     if (P35 && key3_press) {
         key3_press = 0;
         if (key3_press_count >= 40) {
@@ -241,5 +269,6 @@ void btn_scan_isr(void) interrupt 3 {
         }
         key3_press_count = 0;
     }
+
     TF1 = 0;  // 清除TF1标志
 }
