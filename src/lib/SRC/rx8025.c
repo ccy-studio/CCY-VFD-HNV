@@ -17,8 +17,8 @@
 #define SCL_0 I2C_SCL = 0
 
 void i2c_sda_out() {
-    P1M1 |= 0x40;  
-    P1M0 |= 0x40; 
+    P1M1 |= 0x40;
+    P1M0 |= 0x40;
 }
 
 void i2c_sda_in() {
@@ -218,10 +218,13 @@ void rx8025_time_get(rx8025_timeinfo* timeinfo) {
     timeinfo->week = (-35 + timeinfo->year + (timeinfo->year / 4) +
                       (13 * (timeinfo->month + 1) / 5) + timeinfo->day - 1) %
                      7;
+    if (timeinfo->week > 7) {
+        timeinfo->week = 7;
+    }
 }
 
 void formart_time(rx8025_timeinfo* timeinfo, char* buf) {
-    sprintf(buf, "W%bd% 02bd%02bd%02bd", timeinfo->week, timeinfo->hour,
+    sprintf(buf, "W%bd %02bd%02bd%02bd", timeinfo->week, timeinfo->hour,
             timeinfo->min, timeinfo->sec);
 }
 
