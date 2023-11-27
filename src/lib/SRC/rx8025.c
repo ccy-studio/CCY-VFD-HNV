@@ -3,7 +3,7 @@
  * @Blog: saisaiwa.com
  * @Author: ccy
  * @Date: 2023-09-04 10:53:37
- * @LastEditTime: 2023-11-02 16:46:52
+ * @LastEditTime: 2023-11-27 14:16:13
  */
 #include <rx8025.h>
 
@@ -215,11 +215,29 @@ void rx8025_time_get(rx8025_timeinfo* timeinfo) {
     timeinfo->day = toDec(buf[4]);
     timeinfo->month = toDec(buf[5]);
     timeinfo->year = toDec(buf[6]);
+    if (timeinfo->year > 99) {
+        timeinfo->year = 23;
+    }
+    if (timeinfo->month > 12) {
+        timeinfo->year = 12;
+    }
     timeinfo->week = (-35 + timeinfo->year + (timeinfo->year / 4) +
                       (13 * (timeinfo->month + 1) / 5) + timeinfo->day - 1) %
                      7;
     if (timeinfo->week > 7) {
         timeinfo->week = 7;
+    }
+    if (timeinfo->week == 0) {
+        timeinfo->week = 7;
+    }
+    if (timeinfo->hour >= 24) {
+        timeinfo->hour = 0;
+    }
+    if (timeinfo->min >= 60) {
+        timeinfo->min = 0;
+    }
+    if (timeinfo->sec >= 60) {
+        timeinfo->min = 0;
     }
 }
 
